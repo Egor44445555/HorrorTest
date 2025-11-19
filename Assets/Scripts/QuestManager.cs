@@ -22,7 +22,13 @@ public class QuestManager : MonoBehaviour
 
     void Awake()
     {
-        main = this;
+        if (main != null && main != this)
+		{
+			Destroy(gameObject);
+			return;
+		}
+		
+		main = this;
     }
 
     void Start()
@@ -94,6 +100,21 @@ public class QuestManager : MonoBehaviour
                 item.CloseQuest();
                 break;
             }
+        }
+    }
+
+    void OnDestroy()
+    {
+        questList = null;
+        questItem = null;
+        buyCost = null;
+        mainCamera = null;
+        buyingTarget = null;
+        quests = new Quest[0];
+
+        if (main == this)
+        {
+            main = null;
         }
     }
 }

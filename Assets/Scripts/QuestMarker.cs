@@ -17,7 +17,13 @@ public class QuestMarker : MonoBehaviour
 
     void Awake()
     {
-        main = this;
+        if (main != null && main != this)
+		{
+			Destroy(gameObject);
+			return;
+		}
+		
+		main = this;
     }
 
     void Start()
@@ -122,9 +128,20 @@ public class QuestMarker : MonoBehaviour
 
     void OnDestroy()
     {
+        icon = null;
+        markerImage = null;
+        target = null;
+        canvas = null;
+
+        if (main == this)
+        {
+            main = null;
+        }
+
         if (markerRect != null)
         {
             Destroy(markerRect.gameObject);
+            markerRect = null;
         }
     }
 }

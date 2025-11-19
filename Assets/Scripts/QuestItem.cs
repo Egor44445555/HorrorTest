@@ -12,10 +12,16 @@ public class QuestItem : MonoBehaviour
 
     float currentValueTimer = 0f;
     float totalTime = 180f;
+    Coroutine сlosingTimerCoroutine;
 
     public void CloseQuest()
     {
-        StartCoroutine(ClosingTimer());
+        if (сlosingTimerCoroutine != null)
+        {
+            StopCoroutine(сlosingTimerCoroutine);
+        }
+
+        сlosingTimerCoroutine = StartCoroutine(ClosingTimer());
     }
 
     IEnumerator ClosingTimer()
@@ -33,6 +39,15 @@ public class QuestItem : MonoBehaviour
             }
 
             yield return new WaitForSeconds(interval);
+        }
+    }
+
+    void OnDestroy()
+    {
+        if (сlosingTimerCoroutine != null)
+        {
+            StopCoroutine(сlosingTimerCoroutine);
+            сlosingTimerCoroutine = null;
         }
     }
 }

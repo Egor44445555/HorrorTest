@@ -13,7 +13,13 @@ public class LevelManager : MonoBehaviour
 
     void Awake()
     {
-        main = this;
+        if (main != null && main != this)
+		{
+			Destroy(gameObject);
+			return;
+		}
+		
+		main = this;
     }
 
     void Update()
@@ -39,6 +45,17 @@ public class LevelManager : MonoBehaviour
                 FindObjectOfType<PlayerController>().stuck = false;
                 monster.GetComponent<Monster>().startAttack = true;
             }
+        }
+    }
+
+    void OnDestroy()
+    {
+        monster = null;
+        activeMonsterZone = null;
+
+        if (main == this)
+        {
+            main = null;
         }
     }
 }

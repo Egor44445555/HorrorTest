@@ -30,6 +30,12 @@ public class PlayerController : MonoBehaviour
 
 	void Awake()
 	{
+		if (main != null && main != this)
+		{
+			Destroy(gameObject);
+			return;
+		}
+
 		main = this;
 	}
 
@@ -55,16 +61,6 @@ public class PlayerController : MonoBehaviour
 			Cursor.visible = false;
 		}
 
-		moveFB = Input.GetAxis("Horizontal") * speed;
-		moveLR = Input.GetAxis("Vertical") * speed;
-
-		rotX = Input.GetAxis("Mouse X") * sensitivity;
-		rotY = Input.GetAxis("Mouse Y") * sensitivity;
-
-		Vector3 movement = new Vector3(moveFB, gravity, moveLR);
-
-		movement = transform.rotation * movement;
-
 		if (!stuck)
 		{
 			HandleMovement();
@@ -86,6 +82,8 @@ public class PlayerController : MonoBehaviour
 
 	void HandleCameraRotation()
 	{
+		if (cam == null) return;
+
 		rotX = Input.GetAxis("Mouse X") * sensitivity;
 		rotY = Input.GetAxis("Mouse Y") * sensitivity;
 
@@ -109,64 +107,42 @@ public class PlayerController : MonoBehaviour
 
 	void HandleObjectPickupAndThrow()
 	{
+		if (cam == null) return;
+
 		Ray ray = new Ray(cam.transform.position, cam.transform.forward);
 		RaycastHit hit;
 
 		if (Input.GetMouseButtonDown(0))
 		{
-			if (!isHolding && Physics.Raycast(ray, out hit, pickupDistance) && Physics.Raycast(ray, out hit, Mathf.Infinity, ~ignorLayerMask))
+			if (!isHolding && Physics.Raycast(ray, out hit, pickupDistance, ~ignorLayerMask))
 			{
-				GameObject pickableObj = null;
+				GameObject pickableObj = FindPickableObject(hit);
+				TaskItem taskItem = null;
 
-				if (hit.collider.transform && hit.collider.transform.parent && hit.collider.transform.parent.tag == "Pickable")
+				if (pickableObj != null)
+                {
+                    taskItem = pickableObj.GetComponent<TaskItem>();
+                }
+				
+				if (pickableObj != null && hit.rigidbody != null)
 				{
-					pickableObj = hit.collider.transform.parent.gameObject;
-				}
+					PickUpObject(pickableObj);
 
-				if ((hit.collider.CompareTag("Pickable") || pickableObj != null) && hit.rigidbody != null)
-				{
-					if (pickableObj != null)
-					{
-						heldObject = pickableObj;
-					}
-					else
-					{
-						heldObject = hit.collider.gameObject;
-					}
-
-					if (heldObject.GetComponent<TaskItem>() && heldObject.GetComponent<TaskItem>().taskTarget != null && !heldObject.GetComponent<TaskItem>().completed)
-					{
-						QuestMarker.main.GetComponent<QuestMarker>().target = heldObject.GetComponent<TaskItem>().taskTarget;
-					}
-
-					heldObject.GetComponent<Rigidbody>().rotation = Quaternion.identity;
-					heldObjectRb = heldObject.GetComponent<Rigidbody>();
-					heldObjectRb.isKinematic = false;
-					heldObjectRb.useGravity = false;
-					heldObjectRb.freezeRotation = true;
-					isHolding = true;
+					if (QuestMarker.main != null && taskItem != null && taskItem.taskTarget != null)
+                    {
+                        QuestMarker.main.GetComponent<QuestMarker>().target = taskItem.taskTarget;
+                    }					
 				}
 			}
-			else if (isHolding && heldObjectRb)
+			else if (isHolding)
 			{
-				heldObjectRb.useGravity = true;
-				heldObjectRb.freezeRotation = false;
-				heldObjectRb.AddForce(cam.transform.forward * throwForce, ForceMode.Impulse);
-				heldObject = null;
-				heldObjectRb = null;
-				isHolding = false;
-				QuestMarker.main.GetComponent<QuestMarker>().target = null;
+				DropObject(true);
 			}
 		}
 
 		if (Input.GetMouseButtonDown(1) && isHolding && heldObjectRb)
 		{
-			heldObjectRb.useGravity = true;
-			heldObjectRb.freezeRotation = false;
-			heldObject = null;
-			heldObjectRb = null;
-			isHolding = false;
-			QuestMarker.main.GetComponent<QuestMarker>().target = null;
+			DropObject(false);
 		}
 
 		if (isHolding && heldObject != null)
@@ -177,19 +153,63 @@ public class PlayerController : MonoBehaviour
 		}
 	}
 
+	void DropObject(bool throwObject = false)
+    {
+        heldObjectRb.useGravity = true;
+
+		if (throwObject)
+        {
+            heldObjectRb.AddForce(cam.transform.forward * throwForce, ForceMode.Impulse);
+        }
+
+		heldObjectRb.freezeRotation = false;
+		heldObject = null;
+		heldObjectRb = null;
+		isHolding = false;
+		QuestMarker.main.GetComponent<QuestMarker>().target = null;
+    }
+
+	GameObject FindPickableObject(RaycastHit hit)
+	{
+		if (hit.collider.CompareTag("Pickable")) 
+			return hit.collider.gameObject;
+		
+		if (hit.collider.transform?.parent?.CompareTag("Pickable") == true)
+			return hit.collider.transform.parent.gameObject;
+		
+		return null;
+	}
+
+	void PickUpObject(GameObject obj)
+	{
+		heldObject = obj;
+		heldObjectRb = heldObject.GetComponent<Rigidbody>();
+		
+		if (heldObjectRb == null) 
+		{
+			heldObject = null;
+			return;
+		}
+		
+		heldObjectRb.isKinematic = false;
+		heldObjectRb.useGravity = false;
+		heldObjectRb.freezeRotation = true;
+		isHolding = true;
+	}
+
 	public void Lowering()
 	{
+		if (QuestMarker.main != null)
+		{
+			QuestMarker.main.GetComponent<QuestMarker>().target = null;
+		}
+		
 		Ray ray = new Ray(cam.transform.position, cam.transform.forward);
 		RaycastHit hit;
 
 		if (isHolding)
 		{
-			heldObjectRb.useGravity = true;
-			heldObjectRb.freezeRotation = false;
-			heldObject = null;
-			heldObjectRb = null;
-			isHolding = false;
-			QuestMarker.main.GetComponent<QuestMarker>().target = null;
+			DropObject();
 		}
 	}
 
@@ -208,4 +228,15 @@ public class PlayerController : MonoBehaviour
 			Cursor.visible = false;
 		}
 	}
+
+	void OnDestroy()
+    {
+        cam = null;
+		character = null;
+
+        if (main == this)
+        {
+            main = null;
+        }
+    }
 }

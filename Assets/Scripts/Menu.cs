@@ -9,7 +9,13 @@ public class Menu : MonoBehaviour
 
     void Awake()
     {
-        main = this;
+        if (main != null && main != this)
+		{
+			Destroy(gameObject);
+			return;
+		}
+		
+		main = this;
     }
 
     void Start()
@@ -41,5 +47,15 @@ public class Menu : MonoBehaviour
     public void Exit()
     {
         Application.Quit();
+    }
+
+    void OnDestroy()
+    {
+        menu = null;
+
+        if (main == this)
+        {
+            main = null;
+        }
     }
 }
