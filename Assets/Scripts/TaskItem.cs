@@ -23,7 +23,7 @@ public class TaskItem : MonoBehaviour
                 if (item.id == taskId && !item.complete)
                 {
                     item.complete = true;
-                    QuestMarker.main.GetComponent<QuestMarker>().target = item.target;
+                    QuestMarker.main.target = item.target;
                     break;
                 }
             }
@@ -39,7 +39,7 @@ public class TaskItem : MonoBehaviour
 
             if (!newTask)
             {
-                QuestManager.main.GetComponent<QuestManager>().TaskSetup();
+                QuestManager.main.TaskSetup();
                 newTask = true;
             }            
         }

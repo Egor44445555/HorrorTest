@@ -6,14 +6,14 @@ using TMPro;
 public class QuestMarker : MonoBehaviour
 {
     public static QuestMarker main;
+    [SerializeField] Transform markerPlace;
     [SerializeField] Sprite icon;
-    [SerializeField] public Camera mainCamera;
+    public Camera mainCamera;
 
     [HideInInspector] public Transform target;
 
     RectTransform markerRect;
     Image markerImage;
-    Canvas canvas;
 
     void Awake()
     {
@@ -28,8 +28,6 @@ public class QuestMarker : MonoBehaviour
 
     void Start()
     {
-        canvas = FindObjectOfType<Canvas>();
-
         GameObject markerObj = new GameObject("Quest Marker");
         markerObj.tag = "Marker";
         markerRect = markerObj.AddComponent<RectTransform>();
@@ -37,7 +35,7 @@ public class QuestMarker : MonoBehaviour
         markerRect.sizeDelta = new Vector2(40f, 40f);
 
         markerImage.sprite = icon;
-        markerRect.SetParent(canvas.transform);
+        markerRect.SetParent(markerPlace);
         markerRect.localScale = Vector3.one;
     }
 
@@ -45,9 +43,9 @@ public class QuestMarker : MonoBehaviour
     {
         if (target == null)
         {
-            if (FindObjectOfType<QuestItem>() && !PlayerController.main.GetComponent<PlayerController>().isHolding)
+            if (FindObjectOfType<QuestItem>() && !PlayerController.main.isHolding)
             {
-                Quest quest = Array.Find(QuestManager.main.GetComponent<QuestManager>().quests, (item) => item.id == FindObjectOfType<QuestItem>().idQuest);
+                Quest quest = Array.Find(QuestManager.main.quests, (item) => item.id == FindObjectOfType<QuestItem>().idQuest);
                 target = quest.target;
             }
 
@@ -131,7 +129,6 @@ public class QuestMarker : MonoBehaviour
         icon = null;
         markerImage = null;
         target = null;
-        canvas = null;
 
         if (main == this)
         {

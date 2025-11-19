@@ -35,7 +35,7 @@ public class Monster : MonoBehaviour
         if (startAttack)
         {
             skinnedMesh.enabled = true;
-            agent.SetDestination(FindObjectOfType<PlayerController>().transform.position);
+            agent.SetDestination(PlayerController.main.transform.position);
 
             if (!playMusic)
             {

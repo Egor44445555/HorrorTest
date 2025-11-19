@@ -5,8 +5,9 @@ using UnityEngine;
 public class LevelManager : MonoBehaviour
 {
     public static LevelManager main;
-    public GameObject monster;
-    public TaskZone activeMonsterZone;
+    [SerializeField] GameObject monster;
+    [SerializeField] TaskZone activeMonsterZone;
+    [SerializeField] TaskZone safeZone;
 
     bool soundBeforeStart = false;
     bool startFinalQuest = false;
@@ -29,9 +30,15 @@ public class LevelManager : MonoBehaviour
             startFinalQuest = true;
         }
 
+        if (safeZone && safeZone.taskItem)
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene(
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex
+            );
+        }
+
         if (startFinalQuest)
         {
-            FindObjectOfType<PlayerController>().stuck = true;
             monster.SetActive(true);
 
             if (!soundBeforeStart)
@@ -42,7 +49,6 @@ public class LevelManager : MonoBehaviour
 
             if (!FindObjectOfType<PlayerController>().GetComponent<AudioSource>().isPlaying)
             {
-                FindObjectOfType<PlayerController>().stuck = false;
                 monster.GetComponent<Monster>().startAttack = true;
             }
         }

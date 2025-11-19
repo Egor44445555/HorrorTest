@@ -24,7 +24,11 @@ public class TaskPlase : MonoBehaviour
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
-        cam = FindObjectOfType<PlayerController>().cam;
+        
+        if (PlayerController.main != null)
+        {
+            cam = PlayerController.main.GetCam();
+        }
     }
 
     void Update()
@@ -41,7 +45,7 @@ public class TaskPlase : MonoBehaviour
             {
                 currentItem = true;
             }
-            else
+            else if (taskZone.GetComponent<TaskZone>().taskItem.GetComponent<Rigidbody>() != null)
             {
                 taskZone.GetComponent<TaskZone>().taskItem.GetComponent<Rigidbody>().AddForce(cam.transform.forward * -0.1f, ForceMode.Impulse);
             }
@@ -79,7 +83,7 @@ public class TaskPlase : MonoBehaviour
                     if (item.id == completeTaskId && !item.complete)
                     {
                         item.complete = true;
-                        QuestMarker.main.GetComponent<QuestMarker>().target = nextMarkerPoint;
+                        QuestMarker.main.target = nextMarkerPoint;
                         break;
                     }
                 }
@@ -93,7 +97,7 @@ public class TaskPlase : MonoBehaviour
                     }
                 }
 
-                QuestManager.main.GetComponent<QuestManager>().TaskSetup();
+                QuestManager.main.TaskSetup();
             }
         }
 

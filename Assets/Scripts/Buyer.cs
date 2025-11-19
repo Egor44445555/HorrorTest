@@ -68,8 +68,11 @@ public class Buyer : MonoBehaviour
             case CustomerState.MovingToShop:
             case CustomerState.MovingToCounter:
             case CustomerState.MovingToExit:
-                if (agent.isActiveAndEnabled && agent.isOnNavMesh &&
-                    !agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
+                if (agent.isActiveAndEnabled && 
+                    agent.isOnNavMesh &&
+                    !agent.pathPending &&
+                    agent.remainingDistance <= agent.stoppingDistance
+                )
                 {
                     ReachedPoint();
                 }
@@ -82,11 +85,10 @@ public class Buyer : MonoBehaviour
 
                 if (!startTasks)
                 {
-                    QuestManager.main.GetComponent<QuestManager>().questList.gameObject.SetActive(true);
-                    QuestManager.main.GetComponent<QuestManager>().TaskSetup();
+                    QuestManager.main.questList.gameObject.SetActive(true);
+                    QuestManager.main.TaskSetup();
                     startTasks = true;
                 }
-                              
 
                 if (npcAnimator != null)
                 {
@@ -183,10 +185,11 @@ public class Buyer : MonoBehaviour
                 float cost = 0f;
                 bought = true;
                 cost = 100;
-                QuestManager.main.GetComponent<QuestManager>().buyCost.GetComponent<TextMeshProUGUI>().text = cost.ToString() + "$";
-                QuestManager.main.GetComponent<QuestManager>().buying = true;
-                QuestManager.main.GetComponent<QuestManager>().buyingTarget = transform;
-                QuestManager.main.GetComponent<QuestManager>().TaskClose("sell");
+                QuestManager.main.buyCost.GetComponent<TextMeshProUGUI>().text = cost.ToString() + "$";
+                QuestManager.main.buying = true;
+                QuestManager.main.buyingTarget = transform;
+                QuestManager.main.TaskClose("sell");
+                QuestManager.main.TaskSetup();
                 audioSource.Play();
                 Destroy(cupObj.gameObject);
             }

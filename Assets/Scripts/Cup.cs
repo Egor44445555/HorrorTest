@@ -78,7 +78,11 @@ public class Cup : MonoBehaviour
                         }
                     }
 
-                    QuestManager.main.GetComponent<QuestManager>().TaskSetup();
+                    if (componentsList.Count - 1 > i)
+                    {
+                        QuestManager.main.TaskSetup();
+                    }
+                    
                     newComponent.GetComponent<MeshRenderer>().enabled = true;
                     newComponent.transform.SetParent(transform, true);
                     Destroy(obj);
@@ -89,7 +93,7 @@ public class Cup : MonoBehaviour
             }
         }
 
-        if (filledCup && components.Length > componentsList.Count && !PlayerController.main.GetComponent<PlayerController>().isHolding)
+        if (filledCup && components.Length > componentsList.Count && !PlayerController.main.isHolding)
         {
             GameObject component = null;
 
@@ -107,7 +111,7 @@ public class Cup : MonoBehaviour
                     if (item.id == LayerMask.LayerToName(component.layer).ToLower())
                     {
                         target = item.target;
-                        QuestMarker.main.GetComponent<QuestMarker>().target = item.target;
+                        QuestMarker.main.target = item.target;
                         break;
                     }
                 }
@@ -116,7 +120,7 @@ public class Cup : MonoBehaviour
                 {
                     if (item.idQuest == LayerMask.LayerToName(component.layer).ToLower() && target != null)
                     {
-                        QuestMarker.main.GetComponent<QuestMarker>().target = target;
+                        QuestMarker.main.target = target;
                         break;
                     }
                 }

@@ -18,7 +18,6 @@ public class QuestManager : MonoBehaviour
     float buyingTimer = 0f;
     float buyingTimerDelay = 1f;
     bool buyingAnimate = false;
-    Camera mainCamera;
 
     void Awake()
     {
@@ -33,7 +32,10 @@ public class QuestManager : MonoBehaviour
 
     void Start()
     {
-        mainCamera = QuestMarker.main.GetComponent<QuestMarker>().mainCamera;
+        if (quests.Length > 0 && quests[0].runImmediately)
+        {
+            TaskSetup();
+        }
     }
 
     void Update()
@@ -56,7 +58,7 @@ public class QuestManager : MonoBehaviour
                 buyCost.GetComponent<TextMeshProUGUI>().text = "";
             }
 
-            QuestMarker.main.GetComponent<QuestMarker>().UpdateMarkerPosition(buyingTarget, buyCost.GetComponent<RectTransform>());
+            QuestMarker.main.UpdateMarkerPosition(buyingTarget, buyCost.GetComponent<RectTransform>());
         }
         else
         {
@@ -79,16 +81,24 @@ public class QuestManager : MonoBehaviour
                 Instantiate(prefab, questList);
                 break;
             }
+
+            if (!item.complete)
+            {
+                QuestMarker.main.target = item.target;
+                break;
+            }
         }
     }
 
     public void TaskClose(string taskId)
     {
+        int index = 0;
         foreach (Quest item in quests)
         {
+            index++;
             if (item.id == taskId && !item.complete)
             {
-                item.complete = true;
+                item.complete = true;                
                 break;
             }
         }
@@ -108,7 +118,6 @@ public class QuestManager : MonoBehaviour
         questList = null;
         questItem = null;
         buyCost = null;
-        mainCamera = null;
         buyingTarget = null;
         quests = new Quest[0];
 

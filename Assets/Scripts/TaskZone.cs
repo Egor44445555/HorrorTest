@@ -14,7 +14,10 @@ public class TaskZone : MonoBehaviour
 
     void Start()
     {
-        cam = FindObjectOfType<PlayerController>().cam;
+        if (PlayerController.main != null)
+        {
+            cam = PlayerController.main.GetCam();
+        }
     }
 
     void OnTriggerEnter(Collider other)
@@ -23,13 +26,13 @@ public class TaskZone : MonoBehaviour
         {
             taskInZone = true;
             taskItem = other.gameObject;
-            PlayerController.main.Lowering();
+            PlayerController.main.DropObject();
         }
     }
 
     void OnTriggerStay(Collider other)
     {
-        if (transform.parent.GetComponent<TaskPlase>())
+        if (transform.parent != null && transform.parent.GetComponent<TaskPlase>())
         {            
             GameObject currentItemObj = Array.Find(transform.parent.GetComponent<TaskPlase>().currentObject, (item) => item.name == other.gameObject.name);
 
@@ -37,7 +40,7 @@ public class TaskZone : MonoBehaviour
             {
                 other.gameObject.GetComponent<Rigidbody>().AddForce(cam.transform.forward * -0.1f, ForceMode.Impulse);
             }
-        }        
+        }
 
         if (other.gameObject.GetComponent<TaskItem>())
         {

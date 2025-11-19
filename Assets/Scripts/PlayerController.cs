@@ -8,10 +8,10 @@ public class PlayerController : MonoBehaviour
 	public static PlayerController main;
 
 	[Header("Movement Settings")]
-	public float speed = 10.0f;
-	public float sensitivity = 30.0f;
+	[SerializeField] float speed = 10.0f;
+	[SerializeField] float sensitivity = 30.0f;
 	public float collisionCheckDistance = 0.5f;
-	public GameObject cam;
+	[SerializeField] GameObject cam;
 	public bool stuck = false;
 	float moveFB, moveLR;
 	float rotX, rotY;
@@ -19,10 +19,10 @@ public class PlayerController : MonoBehaviour
 	CharacterController character;
 
 	[Header("Object Pickup Settings")]
-	public LayerMask ignorLayerMask;
-	public float pickupDistance = 3f;
-	public float holdDistance = 1.5f;
-	public float throwForce = 10f;
+	[SerializeField] LayerMask ignorLayerMask;
+	[SerializeField] float pickupDistance = 3f;
+	[SerializeField] float holdDistance = 1.5f;
+	[SerializeField] float throwForce = 10f;
 	GameObject heldObject = null;
 	Rigidbody heldObjectRb;	
 	bool ignoreFirstFrame = false;
@@ -52,7 +52,7 @@ public class PlayerController : MonoBehaviour
 		{
 			Cursor.lockState = CursorLockMode.None;
 			Cursor.visible = true;
-			Menu.main.GetComponent<Menu>().OpenMenu();
+			Menu.main.OpenMenu();
 		}
 
 		if (Input.GetMouseButtonDown(0) && !GameObject.FindGameObjectWithTag("Popup"))
@@ -109,12 +109,11 @@ public class PlayerController : MonoBehaviour
 	{
 		if (cam == null) return;
 
-		Ray ray = new Ray(cam.transform.position, cam.transform.forward);
-		RaycastHit hit;
-
 		if (Input.GetMouseButtonDown(0))
 		{
-			if (!isHolding && Physics.Raycast(ray, out hit, pickupDistance, ~ignorLayerMask))
+			if (!isHolding && Input.GetMouseButtonDown(0) && 
+				Physics.Raycast(cam.transform.position, cam.transform.forward, out RaycastHit hit, pickupDistance, ~ignorLayerMask)
+			)
 			{
 				GameObject pickableObj = FindPickableObject(hit);
 				TaskItem taskItem = null;
@@ -130,7 +129,7 @@ public class PlayerController : MonoBehaviour
 
 					if (QuestMarker.main != null && taskItem != null && taskItem.taskTarget != null)
                     {
-                        QuestMarker.main.GetComponent<QuestMarker>().target = taskItem.taskTarget;
+                        QuestMarker.main.target = taskItem.taskTarget;
                     }					
 				}
 			}
@@ -152,22 +151,6 @@ public class PlayerController : MonoBehaviour
 			heldObjectRb.velocity = (holdPosition - heldObject.transform.position) * 60f;
 		}
 	}
-
-	void DropObject(bool throwObject = false)
-    {
-        heldObjectRb.useGravity = true;
-
-		if (throwObject)
-        {
-            heldObjectRb.AddForce(cam.transform.forward * throwForce, ForceMode.Impulse);
-        }
-
-		heldObjectRb.freezeRotation = false;
-		heldObject = null;
-		heldObjectRb = null;
-		isHolding = false;
-		QuestMarker.main.GetComponent<QuestMarker>().target = null;
-    }
 
 	GameObject FindPickableObject(RaycastHit hit)
 	{
@@ -197,21 +180,26 @@ public class PlayerController : MonoBehaviour
 		isHolding = true;
 	}
 
-	public void Lowering()
-	{
-		if (QuestMarker.main != null)
-		{
-			QuestMarker.main.GetComponent<QuestMarker>().target = null;
-		}
-		
-		Ray ray = new Ray(cam.transform.position, cam.transform.forward);
-		RaycastHit hit;
+	public void DropObject(bool throwObject = false)
+    {
+		if (heldObjectRb == null)
+        {
+            return;
+        }
 
-		if (isHolding)
-		{
-			DropObject();
-		}
-	}
+        heldObjectRb.useGravity = true;
+
+		if (throwObject)
+        {
+            heldObjectRb.AddForce(cam.transform.forward * throwForce, ForceMode.Impulse);
+        }
+
+		heldObjectRb.freezeRotation = false;
+		heldObject = null;
+		heldObjectRb = null;
+		isHolding = false;
+		QuestMarker.main.target = null;
+    }
 
 	void CameraRotation(GameObject cam, float rotX, float rotY)
 	{
@@ -228,6 +216,11 @@ public class PlayerController : MonoBehaviour
 			Cursor.visible = false;
 		}
 	}
+
+	public GameObject GetCam()
+    {
+        return cam;
+    }
 
 	void OnDestroy()
     {
