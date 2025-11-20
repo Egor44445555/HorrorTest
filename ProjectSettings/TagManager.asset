@@ -12,6 +12,7 @@ TagManager:
   - Marker
   - Test
   - Popup
+  - Monster
   layers:
   - Default
   - TransparentFX
