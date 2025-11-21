@@ -15,18 +15,18 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 9
   m_Fog: 1
-  m_FogColor: {r: 0.103773594, g: 0.077830195, b: 0.077830195, a: 1}
+  m_FogColor: {r: 0.11764706, g: 0.11764706, b: 0.16470589, a: 1}
   m_FogMode: 3
-  m_FogDensity: 0.05
+  m_FogDensity: 0.06
   m_LinearFogStart: 0
   m_LinearFogEnd: 19.06
-  m_AmbientSkyColor: {r: 0.20754719, g: 0.20754719, b: 0.20754719, a: 0.6}
+  m_AmbientSkyColor: {r: 0.30927375, g: 0.3228091, b: 0.4716981, a: 0.6}
   m_AmbientEquatorColor: {r: 0.23579474, g: 0.26282853, b: 0.28235295, a: 0.6}
   m_AmbientGroundColor: {r: 0.09411766, g: 0.08297215, b: 0.068111464, a: 0.6}
   m_AmbientIntensity: 0.6
   m_AmbientMode: 3
   m_SubtractiveShadowColor: {r: 0.3679245, g: 0.3679245, b: 0.3679245, a: 1}
-  m_SkyboxMaterial: {fileID: -7113631319887564079, guid: 6f7a4a8fa4c242f46b09401b51552da6, type: 3}
+  m_SkyboxMaterial: {fileID: -876546973899608171, guid: 6b518d30f5054864ea4ea47cc8741ba9, type: 3}
   m_HaloStrength: 0.415
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -15223,7 +15223,7 @@ Transform:
   m_GameObject: {fileID: 941669600}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.99968994, z: -0, w: 0.024901565}
-  m_LocalPosition: {x: 437.2, y: 18.08, z: 538.68}
+  m_LocalPosition: {x: 437.72, y: 18.08, z: 549.26}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -30573,8 +30573,8 @@ GameObject:
   - component: {fileID: 1861762810}
   - component: {fileID: 1861762811}
   - component: {fileID: 1861762814}
-  - component: {fileID: 1861762813}
   - component: {fileID: 1861762815}
+  - component: {fileID: 1861762813}
   - component: {fileID: 1861762812}
   m_Layer: 0
   m_Name: UI
@@ -30868,7 +30868,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 23779fce2c5b94b498538bd12a59baac, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  monster: {fileID: 2033133465}
+  monster: {fileID: 2033133467}
   activeMonsterZone: {fileID: 941669601}
   safeZone: {fileID: 1590356807}
 --- !u!1001 &1861822708
@@ -33711,11 +33711,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5113403946093835550, guid: 3750ffd78952c004fb598f6036dc80d4, type: 3}
   m_PrefabInstance: {fileID: 2029969333}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &2033133465 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1402923314352285389, guid: b16a04f875b57c14ca985451a2263f5e, type: 3}
+--- !u!114 &2033133467 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 9032709435570271663, guid: b16a04f875b57c14ca985451a2263f5e, type: 3}
   m_PrefabInstance: {fileID: 3245591913215147381}
   m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1476042ba4ab03d4aa89670a7f0cc5d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2040301015
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -35844,10 +35850,6 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 1707938936449722599, guid: 7d34738b5f0edc6419d0a810246ece34, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 0.9
-      objectReference: {fileID: 0}
-    - target: {fileID: 1707938936449722599, guid: 7d34738b5f0edc6419d0a810246ece34, type: 3}
       propertyPath: m_LocalPosition.x
       value: 432.53
       objectReference: {fileID: 0}
@@ -36191,6 +36193,10 @@ PrefabInstance:
     - target: {fileID: 1402923314352285389, guid: b16a04f875b57c14ca985451a2263f5e, type: 3}
       propertyPath: m_Name
       value: CryWolf
+      objectReference: {fileID: 0}
+    - target: {fileID: 1402923314352285389, guid: b16a04f875b57c14ca985451a2263f5e, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1412726617935388576, guid: b16a04f875b57c14ca985451a2263f5e, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -37910,7 +37916,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4942639413680873938, guid: b16a04f875b57c14ca985451a2263f5e, type: 3}
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 4892484143569589325, guid: b16a04f875b57c14ca985451a2263f5e, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b16a04f875b57c14ca985451a2263f5e, type: 3}
