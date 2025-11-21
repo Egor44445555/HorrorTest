@@ -4,14 +4,21 @@ using UnityEngine.UI;
 
 public class Monster : MonoBehaviour
 {
+    public bool startAttack = false;
     [SerializeField] TaskZone activeZone;
     [SerializeField] SkinnedMeshRenderer[] skinnedMesh;
-    public bool startAttack = false;
 
-    Animator anim;
-    NavMeshAgent agent;
+
+    [Header("Sounds")]
+    [SerializeField] AudioSource roarSound;
+    [SerializeField] AudioSource footstepSound;
+    
+    [Header("Target Settings")]
     [SerializeField] float targetRadius = 1f;
     [SerializeField] float minTargetRadius = 1f;
+
+    Animator anim;
+    NavMeshAgent agent;    
     float attackAnimationTimer = 0f;
     float maxAttackAnimationTime = 1.5f;
     Canvas canvas;
@@ -114,8 +121,6 @@ public class Monster : MonoBehaviour
         int random = Random.Range(0, 100);
         bool secondAttack = random > 50;
 
-        print(secondAttack);
-
         if (anim != null)
         {
             anim.SetBool("Attack", secondAttack);
@@ -137,7 +142,7 @@ public class Monster : MonoBehaviour
     {
         if (anim == null) return;
 
-        anim.SetBool("Roar", false);
+        anim.SetBool("Roar", false);        
 
         if (attack || isAttacking)
         {
@@ -146,11 +151,18 @@ public class Monster : MonoBehaviour
         else
         {
             bool isMoving = agent != null && agent.velocity.magnitude > 0.1f && !agent.isStopped;
-            anim.SetBool("Walk", isMoving);
-            
+            anim.SetBool("Walk", isMoving);            
             anim.SetBool("Attack", false);
             anim.SetBool("Attack2", false);
         }
+    }
+
+    public void FootStepSound()
+    {
+        if (footstepSound != null)
+        {
+            footstepSound.Play();
+        }        
     }
 
     public void StartHunt()
@@ -160,6 +172,11 @@ public class Monster : MonoBehaviour
             anim = GetComponent<Animator>();            
         }
 
+        if (roarSound != null)
+        {
+            roarSound.Play();
+        }
+        
         anim.SetBool("Roar", true);
     }
 

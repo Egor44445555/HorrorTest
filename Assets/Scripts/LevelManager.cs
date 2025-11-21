@@ -8,9 +8,13 @@ public class LevelManager : MonoBehaviour
     [SerializeField] Monster monster;
     [SerializeField] TaskZone activeMonsterZone;
     [SerializeField] TaskZone safeZone;
+    [SerializeField] AudioSource chaseMusic;
 
-    bool soundBeforeStart = false;
     bool startFinalQuest = false;
+    bool startPrepareMonster = false;
+    float prepareMonsterTimer = 0f;
+    float maxPrepareMonsterTime = 5f;
+    bool isStartAttack = false;
 
     void Awake()
     {
@@ -25,23 +29,29 @@ public class LevelManager : MonoBehaviour
 
     void Update()
     {
-        if (activeMonsterZone && activeMonsterZone.taskItem && !startFinalQuest)
+        if (startPrepareMonster && prepareMonsterTimer < maxPrepareMonsterTime)
         {
+            prepareMonsterTimer += Time.deltaTime;
+        }
+
+        if (activeMonsterZone != null && activeMonsterZone.taskItem && !startFinalQuest)
+        {
+            startPrepareMonster = true;
             monster.gameObject.SetActive(true);
             monster.StartHunt();
-
-            if (!soundBeforeStart)
-            {
-                PlayerController.main.GetComponent<AudioSource>().Play();
-                soundBeforeStart = true;
-            }
-
             startFinalQuest = true;
         }
 
-        if (startFinalQuest && !PlayerController.main.GetComponent<AudioSource>().isPlaying)
+        if (startFinalQuest && prepareMonsterTimer >= maxPrepareMonsterTime && !isStartAttack)
         {
             monster.startAttack = true;
+
+            if (chaseMusic != null)
+            {
+                chaseMusic.Play();
+            }
+
+            isStartAttack = true;
         }
 
         if (safeZone && safeZone.taskItem)

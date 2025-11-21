@@ -15,7 +15,8 @@ public class AudioPlaylist : MonoBehaviour
         audioSource = gameObject.AddComponent<AudioSource>();
         audioSource.playOnAwake = false;
         audioSource.spatialBlend = 1.0f;
-        audioSource.rolloffMode = AudioRolloffMode.Custom;
+        audioSource.rolloffMode = AudioRolloffMode.Logarithmic;
+        audioSource.minDistance = 3f;
     }
 
     void Update()
