@@ -37,7 +37,6 @@ public class Monster : MonoBehaviour
 
         if (agent == null)
         {
-            Debug.LogError("NavMeshAgent component is missing!", this);
             return;
         }
     }

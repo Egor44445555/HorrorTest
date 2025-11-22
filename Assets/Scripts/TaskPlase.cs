@@ -69,10 +69,10 @@ public class TaskPlase : MonoBehaviour
                 taskZone.GetComponent<TaskZone>().taskItem.tag = "Untagged";
             }
 
-            if (taskZone.GetComponent<TaskZone>().taskItem.GetComponent<Cup>() && !startCupFillingAnim)
+            if (taskZone.GetComponent<TaskZone>().taskItem.GetComponent<Item>() && !startCupFillingAnim)
             {
-                taskZone.GetComponent<TaskZone>().taskItem.GetComponent<Cup>().anim.SetBool("Filling", true);
-                taskZone.GetComponent<TaskZone>().taskItem.GetComponent<Cup>().filledCup = true;
+                taskZone.GetComponent<TaskZone>().taskItem.GetComponent<Item>().anim.SetBool("Filling", true);
+                taskZone.GetComponent<TaskZone>().taskItem.GetComponent<Item>().filledCup = true;
                 startCupFillingAnim = true;
             }
 

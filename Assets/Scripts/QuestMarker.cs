@@ -32,7 +32,7 @@ public class QuestMarker : MonoBehaviour
         markerObj.tag = "Marker";
         markerRect = markerObj.AddComponent<RectTransform>();
         markerImage = markerObj.AddComponent<Image>();
-        markerRect.sizeDelta = new Vector2(40f, 40f);
+        markerRect.sizeDelta = new Vector2(20f, 20f);
 
         markerImage.sprite = icon;
         markerRect.SetParent(markerPlace);

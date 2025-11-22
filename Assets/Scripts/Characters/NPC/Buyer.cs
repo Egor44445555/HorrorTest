@@ -38,15 +38,8 @@ public class Buyer : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         basedSpeed = agent.speed;
 
-        if (agent == null)
+        if (agent == null || pathPoints.Length < 3)
         {
-            Debug.LogError("NavMeshAgent component is missing!", this);
-            return;
-        }
-
-        if (pathPoints.Length < 3)
-        {
-            Debug.LogError("Not enough path points! Need at least 3: entrance, counter, exit", this);
             return;
         }
 
@@ -178,9 +171,9 @@ public class Buyer : MonoBehaviour
     {
         if (LayerMask.LayerToName(other.gameObject.layer) == "Cup" && other.gameObject)
         {
-            Cup cupObj = other.gameObject.GetComponentInParent(typeof(Cup)) as Cup;
+            Item itemObj = other.gameObject.GetComponentInParent(typeof(Item)) as Item;
 
-            if (cupObj != null && cupObj.GetComponent<TaskItem>().completed)
+            if (itemObj != null && itemObj.GetComponent<TaskItem>().completed)
             {
                 float cost = 0f;
                 bought = true;
@@ -191,7 +184,7 @@ public class Buyer : MonoBehaviour
                 QuestManager.main.TaskClose("sell");
                 QuestManager.main.TaskSetup();
                 audioSource.Play();
-                Destroy(cupObj.gameObject);
+                Destroy(itemObj.gameObject);
             }
         }
     }

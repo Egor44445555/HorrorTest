@@ -36,6 +36,7 @@ public class LevelManager : MonoBehaviour
 
         if (activeMonsterZone != null && activeMonsterZone.taskItem && !startFinalQuest)
         {
+            PlayerController.main.StartChase();
             startPrepareMonster = true;
             monster.gameObject.SetActive(true);
             monster.StartHunt();
