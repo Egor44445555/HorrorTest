@@ -73,7 +73,7 @@ public class PlayerController : MonoBehaviour
 			HandleMovement();
 		}
 		
-		HandleCameraRotation();
+		HandleCameraRotation();		
 		FindPickup();
 		PickupAndThrow();
 	}
@@ -168,7 +168,7 @@ public class PlayerController : MonoBehaviour
 					float minDistance = 0.1f;
 					TaskItem taskItem = heldObject.GetComponent<TaskItem>();
 
-					heldObjectRb = heldObject.GetComponent<Rigidbody>();
+					heldObjectRb = heldObject.GetComponent<Rigidbody>();					
 					heldObjectRb.isKinematic = true;
 					heldObjectRb.useGravity = false;
 					heldObjectRb.freezeRotation = true;
@@ -218,7 +218,10 @@ public class PlayerController : MonoBehaviour
 
 	void FindPickup()
     {
-		if (cam == null) return;
+		if (cam == null || heldObject != null)
+        {
+            return;
+        }
 
         Ray ray = new Ray(cam.transform.position, cam.transform.forward);
         RaycastHit hit;
@@ -258,7 +261,7 @@ public class PlayerController : MonoBehaviour
 	public void DropObject(bool throwing = false)
 	{
 		if (heldObjectRb == null) return;
-
+		
 		heldObjectRb.isKinematic = false;
 		heldObjectRb.useGravity = true;
 		heldObjectRb.freezeRotation = false;
@@ -281,6 +284,11 @@ public class PlayerController : MonoBehaviour
 		{
 			QuestMarker.main.SetTarget(null);
 		}
+
+		if (UICursor.main != null)
+        {
+            UICursor.main.GrabCursor(false);
+        }
 	}
 
 	void CameraRotation(GameObject cam, float rotX, float rotY)
