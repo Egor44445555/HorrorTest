@@ -33,14 +33,13 @@ public class PlayerController : MonoBehaviour
 
 
 	[Header("Camera Shake")]
-    public CameraShake cameraShake;
-    public float shakeUpdateInterval = 0.3f;
+    CameraShake cameraShake;
     
     [Header("Chase Settings")]
-    public bool isBeingChased = false;
-    public float chaseIntensity = 1f;
-
+    bool isBeingChased = false;
+    float chaseIntensity = 1f;
 	float lastShakeTime;
+	QuestMarker questMarker;
 
 
 	void Awake()
@@ -56,6 +55,7 @@ public class PlayerController : MonoBehaviour
 
 	void Start()
 	{
+		questMarker = QuestMarker.main;
 		character = GetComponent<CharacterController>();
 		cameraShake = cam.GetComponent<CameraShake>();
 		Cursor.lockState = CursorLockMode.Locked;
@@ -168,6 +168,7 @@ public class PlayerController : MonoBehaviour
 					heldObject = hitObject.CompareTag("Pickable") ? hitObject : hit.collider.transform.parent.gameObject;
 					float objectDistance = Vector3.Distance(heldObject.transform.position, transform.position);
 					float minDistance = 0.1f;
+					TaskItem taskItem = heldObject.GetComponent<TaskItem>();
 
 					heldObjectRb = heldObject.GetComponent<Rigidbody>();
 					heldObjectRb.isKinematic = true;
@@ -182,6 +183,11 @@ public class PlayerController : MonoBehaviour
 					holdDistance = objectDistance > minDistance ? objectDistance : minDistance;
 					isHolding = true;
 					UICursor.main.GrabCursor(false);
+
+					if (questMarker != null && taskItem.taskTarget)
+					{
+						questMarker.SetTarget(taskItem.taskTarget);
+					}
 				}
 			}
 		}
@@ -272,7 +278,11 @@ public class PlayerController : MonoBehaviour
 		heldObject = null;
 		heldObjectRb = null;
 		isHolding = false;
-		QuestMarker.main.target = null;
+
+		if (questMarker != null)
+		{
+			questMarker.SetTarget(null);
+		}
 	}
 
 	void CameraRotation(GameObject cam, float rotX, float rotY)

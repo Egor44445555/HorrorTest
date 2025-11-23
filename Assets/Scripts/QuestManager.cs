@@ -18,20 +18,32 @@ public class QuestManager : MonoBehaviour
     float buyingTimer = 0f;
     float buyingTimerDelay = 1f;
     bool buyingAnimate = false;
+    Animator buyCostAnimator;
+    TextMeshProUGUI buyCostText;
+    List<QuestItem> activeQuestItems = new List<QuestItem>();
+    QuestMarker questMarker;
 
     void Awake()
     {
         if (main != null && main != this)
-		{
-			Destroy(gameObject);
-			return;
-		}
-		
-		main = this;
+        {
+            Destroy(gameObject);
+            return;
+        }
+        
+        main = this;
+        
+        if (buyCost != null)
+        {
+            buyCostAnimator = buyCost.GetComponent<Animator>();
+            buyCostText = buyCost.GetComponent<TextMeshProUGUI>();
+        }
     }
 
     void Start()
     {
+        questMarker = QuestMarker.main;
+
         if (quests.Length > 0 && quests[0].runImmediately)
         {
             TaskSetup();
@@ -43,24 +55,35 @@ public class QuestManager : MonoBehaviour
         if (buying)
         {
             buyingTimer += Time.deltaTime;
-            buyCost.SetActive(true);
-
-            if (buyCost && !buyingAnimate)
+            
+            if (buyCost != null)
             {
-                buyCost.GetComponent<Animator>().SetBool("Buy", true);
-                buyingAnimate = true;
-            }
+                buyCost.SetActive(true);
 
-            if (buyingTimer >= buyingTimerDelay)
-            {
-                buying = false;
-                buyingAnimate = false;
-                buyCost.GetComponent<TextMeshProUGUI>().text = "";
-            }
+                if (buyCostAnimator != null && !buyingAnimate)
+                {
+                    buyCostAnimator.SetBool("Buy", true);
+                    buyingAnimate = true;
+                }
 
-            QuestMarker.main.UpdateMarkerPosition(buyingTarget, buyCost.GetComponent<RectTransform>());
+                if (buyingTimer >= buyingTimerDelay)
+                {
+                    buying = false;
+                    buyingAnimate = false;
+                    
+                    if (buyCostText != null)
+                    {
+                        buyCostText.text = "";
+                    }
+                }
+
+                if (buyingTarget != null && questMarker != null)
+                {
+                    questMarker.UpdateMarkerPosition(buyingTarget, buyCost.GetComponent<RectTransform>());
+                }
+            }
         }
-        else
+        else if (buyCost != null)
         {
             buyCost.SetActive(false);
         }
@@ -68,59 +91,92 @@ public class QuestManager : MonoBehaviour
 
     public void TaskSetup()
     {
-        foreach (Quest item in quests)
+        QuestItem[] allQuestItems = FindObjectsOfType<QuestItem>();
+        
+        foreach (Quest quest in quests)
         {
-            QuestItem questExists = Array.Find(FindObjectsOfType<QuestItem>(), (questItem) => item.id == questItem.idQuest);
-
-            if (!item.complete && questExists == null && item.name != "")
+            if (quest.complete || string.IsNullOrEmpty(quest.name))
             {
-                GameObject prefab = questItem;
-                prefab.GetComponent<QuestItem>().text.GetComponent<TextMeshProUGUI>().text = item.name;
-                prefab.GetComponent<QuestItem>().nameQuest = item.name;
-                prefab.GetComponent<QuestItem>().idQuest = item.id;
-                Instantiate(prefab, questList);
-                break;
+                continue;
             }
 
-            if (!item.complete)
+            bool questExists = System.Array.Exists(allQuestItems, item => item.idQuest == quest.id);
+            
+            if (!questExists)
             {
-                QuestMarker.main.target = item.target;
-                break;
+                CreateQuestItem(quest);
             }
+
+            if (questMarker != null)
+            {
+                questMarker.SetTarget(quest.target);
+            }
+            break;
+        }
+    }
+
+    void CreateQuestItem(Quest quest)
+    {
+        if (questItem == null || questList == null)
+        {
+            return;
+        }
+
+        GameObject questInstance = Instantiate(questItem, questList);
+        QuestItem questItemComponent = questInstance.GetComponent<QuestItem>();
+        
+        if (questItemComponent != null && questItemComponent.text != null)
+        {
+            TextMeshProUGUI textComponent = questItemComponent.text.GetComponent<TextMeshProUGUI>();
+            if (textComponent != null)
+            {
+                textComponent.text = quest.name;
+            }
+            
+            questItemComponent.nameQuest = quest.name;
+            questItemComponent.idQuest = quest.id;
+            activeQuestItems.Add(questItemComponent);
         }
     }
 
     public void TaskClose(string taskId)
     {
-        int index = 0;
-        foreach (Quest item in quests)
+        foreach (Quest quest in quests)
         {
-            index++;
-            if (item.id == taskId && !item.complete)
+            if (quest.id == taskId && !quest.complete)
             {
-                item.complete = true;                
+                quest.complete = true;
                 break;
             }
         }
 
-        foreach (QuestItem item in FindObjectsOfType<QuestItem>())
+        for (int i = activeQuestItems.Count - 1; i >= 0; i--)
         {
-            if (item.idQuest == taskId)
+            if (activeQuestItems[i].idQuest == taskId)
             {
-                item.CloseQuest();
+                activeQuestItems[i].CloseQuest();
+                activeQuestItems.RemoveAt(i);
                 break;
+            }
+        }
+
+        bool questClosed = activeQuestItems.Exists(item => item.idQuest == taskId);
+
+        if (!questClosed)
+        {
+            foreach (QuestItem item in FindObjectsOfType<QuestItem>())
+            {
+                if (item.idQuest == taskId)
+                {
+                    item.CloseQuest();
+                    break;
+                }
             }
         }
     }
 
     void OnDestroy()
     {
-        questList = null;
-        questItem = null;
-        buyCost = null;
-        buyingTarget = null;
-        quests = new Quest[0];
-
         if (main == this)
         {
             main = null;

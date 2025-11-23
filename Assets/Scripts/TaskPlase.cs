@@ -20,10 +20,12 @@ public class TaskPlase : MonoBehaviour
     AudioSource audioSource;
     GameObject cam;
     GameObject finishedItem;
+    QuestMarker questMarker;
 
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
+        questMarker = QuestMarker.main;
         
         if (PlayerController.main != null)
         {
@@ -83,7 +85,7 @@ public class TaskPlase : MonoBehaviour
                     if (item.id == completeTaskId && !item.complete)
                     {
                         item.complete = true;
-                        QuestMarker.main.target = nextMarkerPoint;
+                        questMarker.SetTarget(nextMarkerPoint);
                         break;
                     }
                 }

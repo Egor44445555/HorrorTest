@@ -5,7 +5,8 @@ using TMPro;
 public class Buyer : MonoBehaviour
 {
     [SerializeField] Transform[] pathPoints;
-    [SerializeField] float orderWaitTime = 5f;
+    [SerializeField] Transform leavingPoint;
+    [SerializeField] float stoppingDistance = 0.5f;
     [SerializeField] SkinnedMeshRenderer skinnedMesh;
     [SerializeField] Material idleMaterial;
     [SerializeField] Material smileMaterial;
@@ -14,178 +15,177 @@ public class Buyer : MonoBehaviour
     NavMeshAgent agent;
     AudioSource audioSource;
     int currentPathIndex = 0;
-    float waitTimer = 0f;
-    bool isActive = false;
     float basedSpeed = 2f;
     bool bought = false;
-    bool startTasks = false;
-
-    enum CustomerState
-    {
-        MovingToShop,
-        MovingToCounter,
-        WaitingForOrder,
-        MovingToExit,
-        Leaving
-    }
-
-    CustomerState currentState = CustomerState.MovingToShop;
+    bool isWaiting = false;
+    bool startLeaving = false;
+    QuestManager questManager;
 
     void Start()
     {
+        questManager = QuestManager.main;
         npcAnimator = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
         audioSource = GetComponent<AudioSource>();
-        basedSpeed = agent.speed;
+        
+        if (agent != null)
+        {
+            basedSpeed = agent.speed;
+            agent.stoppingDistance = stoppingDistance;
+        }
 
-        if (agent == null || pathPoints.Length < 3)
+        if (agent == null || pathPoints.Length == 0)
         {
             return;
         }
 
-        isActive = true;
         MoveToNextPoint();
-
-        if (npcAnimator != null)
-        {
-            npcAnimator.SetBool("Walk", true);
-        }
     }
 
     void Update()
     {
-        if (!isActive) return;
+        if (isWaiting) return;
 
-        switch (currentState)
+        if (agent.isActiveAndEnabled && 
+            agent.isOnNavMesh &&
+            !agent.pathPending &&
+            agent.remainingDistance <= agent.stoppingDistance)
         {
-            case CustomerState.MovingToShop:
-            case CustomerState.MovingToCounter:
-            case CustomerState.MovingToExit:
-                if (agent.isActiveAndEnabled && 
-                    agent.isOnNavMesh &&
-                    !agent.pathPending &&
-                    agent.remainingDistance <= agent.stoppingDistance
-                )
-                {
-                    ReachedPoint();
-                }
-                break;
+            HandlePointReached();
+        }
 
-            case CustomerState.WaitingForOrder:
-                waitTimer += Time.deltaTime;
-                agent.updateRotation = false;
-                agent.speed = 0f;
-
-                if (!startTasks)
-                {
-                    QuestManager.main.questList.gameObject.SetActive(true);
-                    QuestManager.main.TaskSetup();
-                    startTasks = true;
-                }
-
-                if (npcAnimator != null)
-                {
-                    npcAnimator.SetBool("Walk", false);
-                }
-
-                if (skinnedMesh != null)
-                {
-                    skinnedMesh.material = smileMaterial;
-                }
-
-                if (waitTimer >= orderWaitTime || bought)
-                {
-                    currentState = CustomerState.MovingToExit;
-                    currentPathIndex = 2;
-
-                    if (skinnedMesh != null)
-                    {
-                        skinnedMesh.material = idleMaterial;
-                    }
-
-                    if (agent.isActiveAndEnabled && agent.isOnNavMesh)
-                    {
-                        agent.SetDestination(pathPoints[currentPathIndex].position);
-                    }
-
-                    if (npcAnimator != null)
-                    {
-                        npcAnimator.SetBool("Walk", true);
-                    }
-
-                    agent.updateRotation = true;
-                    agent.speed = basedSpeed;
-                }
-                break;
-
-            case CustomerState.Leaving:
-                if (agent.isActiveAndEnabled && agent.isOnNavMesh && !agent.pathPending && agent.remainingDistance <= agent.stoppingDistance)
-                {
-                    Destroy(gameObject);
-                }
-                break;
+        if (startLeaving && agent.remainingDistance <= agent.stoppingDistance)
+        {
+            Destroy(gameObject);
         }
     }
 
     void MoveToNextPoint()
     {
-        if (!isActive || !agent.isActiveAndEnabled || !agent.isOnNavMesh) return;
-
         if (currentPathIndex < pathPoints.Length)
         {
             agent.SetDestination(pathPoints[currentPathIndex].position);
+            
+            if (npcAnimator != null)
+            {
+                npcAnimator.SetBool("Walk", true);
+            }
         }
     }
 
-    void ReachedPoint()
+    void HandlePointReached()
     {
-        switch (currentState)
+        currentPathIndex++;
+
+        if (currentPathIndex < pathPoints.Length)
         {
-            case CustomerState.MovingToShop:
-                currentState = CustomerState.MovingToCounter;
-                currentPathIndex = 1;
+            MoveToNextPoint();
+        }
+        else
+        {
+            StartWaiting();
+        }
+    }
 
-                if (agent.isActiveAndEnabled && agent.isOnNavMesh)
-                {
-                    agent.SetDestination(pathPoints[currentPathIndex].position);
-                }
-                break;
+    void StartWaiting()
+    {
+        isWaiting = true;
+        
+        if (npcAnimator != null)
+        {
+            npcAnimator.SetBool("Walk", false);
+        }
 
-            case CustomerState.MovingToCounter:
-                currentState = CustomerState.WaitingForOrder;
-                waitTimer = 0f;
+        if (skinnedMesh != null)
+        {
+            skinnedMesh.material = smileMaterial;
+        }
 
-                if (npcAnimator != null)
-                {
-                    npcAnimator.SetBool("Walk", false);
-                }
-                break;
+        if (questManager != null)
+        {
+            questManager.questList.gameObject.SetActive(true);
+            questManager.TaskSetup();
+        }        
+    }
 
-            case CustomerState.MovingToExit:
-                currentState = CustomerState.Leaving;
-                break;
+    void CompletePurchase()
+    {
+        if (bought) return;
+
+        bought = true;
+        
+        float cost = 100f;
+
+        if (questManager != null)
+        {
+            questManager.buyCost.GetComponent<TextMeshProUGUI>().text = cost.ToString() + "$";
+            questManager.buying = true;
+            questManager.buyingTarget = transform;
+            questManager.TaskClose("sell");
+            questManager.TaskSetup();
+        }        
+        
+        if (audioSource != null)
+        {
+            audioSource.Play();
+        }
+
+        StartLeaving();
+    }
+
+    void StartLeaving()
+    {
+        isWaiting = false;
+        startLeaving = true;
+
+        if (questManager != null && questManager.buyingTarget == transform)
+        {
+            questManager.buyingTarget = null;
+        }
+        
+        if (skinnedMesh != null)
+        {
+            skinnedMesh.material = idleMaterial;
+        }
+
+        currentPathIndex = 0;
+        
+        if (pathPoints.Length > 0)
+        {
+            agent.SetDestination(leavingPoint.position);
+            
+            if (npcAnimator != null)
+            {
+                npcAnimator.SetBool("Walk", true);
+            }
+        }
+        else
+        {
+            Destroy(gameObject);
         }
     }
     
     void OnTriggerEnter(Collider other)
     {
-        if (LayerMask.LayerToName(other.gameObject.layer) == "Cup" && other.gameObject)
+        if (isWaiting && !bought && LayerMask.LayerToName(other.gameObject.layer) == "Cup")
         {
             Item itemObj = other.gameObject.GetComponentInParent(typeof(Item)) as Item;
 
             if (itemObj != null && itemObj.GetComponent<TaskItem>().completed)
             {
-                float cost = 0f;
-                bought = true;
-                cost = 100;
-                QuestManager.main.buyCost.GetComponent<TextMeshProUGUI>().text = cost.ToString() + "$";
-                QuestManager.main.buying = true;
-                QuestManager.main.buyingTarget = transform;
-                QuestManager.main.TaskClose("sell");
-                QuestManager.main.TaskSetup();
-                audioSource.Play();
+                CompletePurchase();
                 Destroy(itemObj.gameObject);
             }
         }
+    }
+
+    void OnDestroy()
+    {
+        skinnedMesh = null;
+        idleMaterial = null;
+        smileMaterial = null;
+        npcAnimator = null;
+        agent = null;
+        audioSource = null;
     }
 }

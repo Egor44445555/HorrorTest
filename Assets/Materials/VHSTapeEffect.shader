@@ -4,7 +4,7 @@ Shader "Hidden/CleanVHSEffect"
     {
         _MainTex ("Texture", 2D) = "white" {}
         _Warmth ("Warmth", Range(0.5, 2)) = 1.1
-        _Vignette ("Vignette", Range(0, 0.5)) = 0.3
+        _Vignette ("Vignette", Range(0, 2)) = 1
         _ScanLines ("Scan Lines", Range(0, 0.3)) = 0.1
         _ChromaShift ("Chroma Shift", Range(0, 0.02)) = 0.005
         _TimeOffset ("Time Offset", Float) = 0

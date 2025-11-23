@@ -16,9 +16,11 @@ public class Item : MonoBehaviour
     LayerMask enemyMask;
     GameObject componentObject;
     List<GameObject> componentsList;
+    QuestMarker questMarker;
 
     void Start()
     {
+        questMarker = QuestMarker.main;
         componentsList = new List<GameObject>(components);
         anim = GetComponent<Animator>();
     }
@@ -111,7 +113,11 @@ public class Item : MonoBehaviour
                     if (item.id == LayerMask.LayerToName(component.layer).ToLower())
                     {
                         target = item.target;
-                        QuestMarker.main.target = item.target;
+
+                        if (questMarker != null)
+                        {
+                            questMarker.SetTarget(item.target);
+                        }
                         break;
                     }
                 }
@@ -120,7 +126,11 @@ public class Item : MonoBehaviour
                 {
                     if (item.idQuest == LayerMask.LayerToName(component.layer).ToLower() && target != null)
                     {
-                        QuestMarker.main.target = target;
+                        if (questMarker != null)
+                        {
+                            questMarker.SetTarget(target);
+                        }
+
                         break;
                     }
                 }

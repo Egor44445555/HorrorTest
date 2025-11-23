@@ -13,6 +13,12 @@ public class TaskItem : MonoBehaviour
     [HideInInspector] public bool completed = false;
 
     bool newTask = false;
+    QuestMarker questMarker;
+
+    void Start()
+    {
+        questMarker = QuestMarker.main;
+    }
 
     void Update()
     {
@@ -23,7 +29,7 @@ public class TaskItem : MonoBehaviour
                 if (item.id == taskId && !item.complete)
                 {
                     item.complete = true;
-                    QuestMarker.main.target = item.target;
+                    questMarker.SetTarget(item.target);
                     break;
                 }
             }

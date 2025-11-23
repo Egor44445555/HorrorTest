@@ -138,12 +138,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   cleanVhsShader: {fileID: 4800000, guid: 7b604dc982bdefd4ca97f85a807683cb, type: 3}
   warmth: 1.356
-  vignette: 0.5
-  scanLines: 0.203
+  vignette: 2
+  scanLines: 0.3
   chromaShift: 0.00147
   enableAnimation: 1
   chromaShiftNoise: 0.003
-  scanLineJitter: 0.0461
+  scanLineJitter: 0.0114
   staticNoise: 0.02
   animationSpeed: 1
 --- !u!1 &2672342841505229540

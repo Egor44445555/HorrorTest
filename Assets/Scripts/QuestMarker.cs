@@ -8,83 +8,146 @@ public class QuestMarker : MonoBehaviour
     public static QuestMarker main;
     [SerializeField] Transform markerPlace;
     [SerializeField] Sprite icon;
-    public Camera mainCamera;
+    [SerializeField] Camera mainCamera;
 
-    [HideInInspector] public Transform target;
+    Transform target;
 
     RectTransform markerRect;
     Image markerImage;
+    QuestItem currentQuestItem;
+    bool isInitialized = false;
 
     void Awake()
     {
         if (main != null && main != this)
-		{
-			Destroy(gameObject);
-			return;
-		}
-		
-		main = this;
+        {
+            Destroy(gameObject);
+            return;
+        }
+        
+        main = this;
     }
 
     void Start()
     {
+        InitializeMarker();
+    }
+
+    void InitializeMarker()
+    {
+        if (isInitialized) return;
+
         GameObject markerObj = new GameObject("Quest Marker");
         markerObj.tag = "Marker";
         markerRect = markerObj.AddComponent<RectTransform>();
         markerImage = markerObj.AddComponent<Image>();
         markerRect.sizeDelta = new Vector2(20f, 20f);
 
-        markerImage.sprite = icon;
-        markerRect.SetParent(markerPlace);
+        if (icon != null)
+        {
+            markerImage.sprite = icon;
+        }
+
+        if (markerPlace != null)
+        {
+            markerRect.SetParent(markerPlace);
+        }
+        else
+        {
+            markerRect.SetParent(transform);
+        }
+        
         markerRect.localScale = Vector3.one;
+        markerImage.enabled = false;
+        isInitialized = true;
     }
 
     void Update()
     {
+        if (!isInitialized) return;
+
         if (target == null)
         {
-            if (FindObjectOfType<QuestItem>() && !PlayerController.main.isHolding)
-            {
-                Quest quest = Array.Find(QuestManager.main.quests, (item) => item.id == FindObjectOfType<QuestItem>().idQuest);
-                target = quest.target;
-            }
-
-            if (GameObject.FindWithTag("Marker"))
-            {
-                markerImage.enabled = false;
-            }
-            
-            return;
+            UpdateTargetFromActiveQuest();
         }
 
-        UpdateMarkerPosition(target, markerRect);
+        if (target != null && markerImage != null)
+        {
+            UpdateMarkerPosition(target, markerRect);
+        }
+    }
+
+    void UpdateTargetFromActiveQuest()
+    {
+        if (currentQuestItem == null)
+        {
+            currentQuestItem = FindObjectOfType<QuestItem>();
+        }
+
+        if (currentQuestItem != null && CanShowMarker())
+        {
+            Quest quest = FindQuestById(currentQuestItem.idQuest);
+            if (quest != null && quest.target != null)
+            {
+                target = quest.target;
+                if (markerImage != null)
+                {
+                    markerImage.enabled = true;
+                }
+            }
+        }
+        else if (markerImage != null)
+        {
+            markerImage.enabled = false;
+        }
+    }
+
+    bool CanShowMarker()
+    {
+        if (PlayerController.main == null) return true;
+        
+        return !PlayerController.main.isHolding;
+    }
+
+    Quest FindQuestById(string questId)
+    {
+        if (QuestManager.main == null || QuestManager.main.quests == null)
+            return null;
+
+        return Array.Find(QuestManager.main.quests, item => item.id == questId);
     }
 
     public void UpdateMarkerPosition(Transform _target, RectTransform _markerRect)
     {
+        if (_target == null || _markerRect == null || mainCamera == null)
+            return;
+
         Vector3 targetScreenPos = mainCamera.WorldToScreenPoint(_target.position);
 
         bool isOffScreen = targetScreenPos.z <= 0 ||
-                          targetScreenPos.x <= 0 ||
-                          targetScreenPos.x >= Screen.width ||
-                          targetScreenPos.y <= 0 ||
-                          targetScreenPos.y >= Screen.height;
+                        targetScreenPos.x <= 0 ||
+                        targetScreenPos.x >= Screen.width ||
+                        targetScreenPos.y <= 0 ||
+                        targetScreenPos.y >= Screen.height;
 
         if (isOffScreen)
         {
-            markerImage.enabled = true;
             targetScreenPos = GetScreenEdgePosition(_target.position);
-        }
-        else
-        {
-            markerImage.enabled = true;
         }
 
         _markerRect.position = targetScreenPos;
+        
+        if (markerImage != null)
+        {
+            markerImage.enabled = true;
+        }
     }
 
     public Vector3 GetScreenEdgePosition(Vector3 worldPos)
     {
+        if (mainCamera == null)
+            return Vector3.zero;
+
         Vector3 screenCenter = new Vector3(Screen.width, Screen.height, 0) / 2;
         Vector3 screenPos = mainCamera.WorldToScreenPoint(worldPos);
 
@@ -124,12 +187,29 @@ public class QuestMarker : MonoBehaviour
         return screenPos;
     }
 
+    public void SetTarget(Transform newTarget)
+    {
+        target = newTarget;
+
+        if (markerImage != null)
+        {
+            markerImage.enabled = newTarget != null;
+        }
+    }
+
+    public void ClearTarget()
+    {
+        target = null;
+        currentQuestItem = null;
+
+        if (markerImage != null)
+        {
+            markerImage.enabled = false;
+        }
+    }
+
     void OnDestroy()
     {
-        icon = null;
-        markerImage = null;
-        target = null;
-
         if (main == this)
         {
             main = null;
@@ -138,7 +218,6 @@ public class QuestMarker : MonoBehaviour
         if (markerRect != null)
         {
             Destroy(markerRect.gameObject);
-            markerRect = null;
         }
     }
 }

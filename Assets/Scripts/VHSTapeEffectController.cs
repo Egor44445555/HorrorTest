@@ -7,7 +7,7 @@ public class CleanVHSEffect : MonoBehaviour
 {
     public Shader cleanVhsShader;
     [Range(0.5f, 2f)] public float warmth = 1.1f;
-    [Range(0f, 0.5f)] public float vignette = 0.3f;
+    [Range(0f, 2f)] public float vignette = 1f;
     [Range(0f, 0.3f)] public float scanLines = 0.1f;
     [Range(0f, 0.02f)] public float chromaShift = 0.005f;
     
