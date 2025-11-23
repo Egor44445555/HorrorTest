@@ -4,50 +4,100 @@ using UnityEngine;
 
 public class TaskItem : MonoBehaviour
 {
-    public string taskId;
-    public bool disposable = false;
-    public Transform taskTarget;
-    public float offsetX = 0f;
-    public float offsetY = 0f;
+    [SerializeField] string taskId;
+    [SerializeField] bool disposable = false;
+    [SerializeField] Transform taskTarget;
+    [SerializeField] float offsetX = 0f;
+    [SerializeField] float offsetY = 0f;
 
-    [HideInInspector] public bool completed = false;
-
-    bool newTask = false;
-    QuestMarker questMarker;
-
-    void Start()
-    {
-        questMarker = QuestMarker.main;
-    }
+    bool completed = false;
+    bool hasProcessedCompletion = false;
 
     void Update()
     {
-        if (completed)
+        if (completed && !hasProcessedCompletion)
         {
-            foreach (Quest item in QuestManager.main.quests)
-            {
-                if (item.id == taskId && !item.complete)
-                {
-                    item.complete = true;
-                    questMarker.SetTarget(item.target);
-                    break;
-                }
-            }
+            ProcessCompletion();
+        }
+    }
 
-            foreach (QuestItem item in FindObjectsOfType<QuestItem>())
-            {
-                if (item.idQuest == taskId)
-                {
-                    item.CloseQuest();
-                    break;
-                }
-            }
+    void ProcessCompletion()
+    {
+        if (hasProcessedCompletion) return;
 
-            if (!newTask)
+        if (QuestManager.main == null)
+        {
+            return;
+        }
+
+        bool questFound = false;
+
+        foreach (Quest item in QuestManager.main.quests)
+        {
+            if (item.id == taskId && !item.complete)
             {
-                QuestManager.main.TaskSetup();
-                newTask = true;
-            }            
+                item.complete = true;
+                questFound = true;
+                
+                if (QuestMarker.main != null && item.target != null)
+                {
+                    QuestMarker.main.SetTarget(item.target);
+                }
+                break;
+            }
+        }
+
+        CloseQuestItem();
+        QuestManager.main.TaskSetup();        
+        hasProcessedCompletion = true;
+    }
+
+    void CloseQuestItem()
+    {
+        QuestItem[] questItems = FindObjectsOfType<QuestItem>();
+        bool itemClosed = false;
+
+        foreach (QuestItem item in questItems)
+        {
+            if (item.idQuest == taskId)
+            {
+                item.CloseQuest();
+                itemClosed = true;
+                break;
+            }
+        }
+    }
+
+    public void SetCompleted()
+    {
+        completed = true;
+    }
+
+    public bool IsCompleted()
+    {
+        return completed;
+    }
+
+    public bool IsDisposable()
+    {
+        return disposable;
+    }
+
+    public Transform GetTaskTarget()
+    {
+        return taskTarget;
+    }
+
+    public string GetTaskId()
+    {
+        return taskId;
+    }
+
+    void OnDestroy()
+    {
+        if (QuestMarker.main != null && QuestMarker.main.GetCurrentTarget() == taskTarget)
+        {
+            QuestMarker.main.ClearTarget();
         }
     }
 }

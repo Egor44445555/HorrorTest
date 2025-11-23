@@ -13,20 +13,18 @@ public class Buyer : MonoBehaviour
 
     Animator npcAnimator;
     NavMeshAgent agent;
-    AudioSource audioSource;
     int currentPathIndex = 0;
     float basedSpeed = 2f;
     bool bought = false;
     bool isWaiting = false;
     bool startLeaving = false;
-    QuestManager questManager;
+    UIManager uIManager;
 
     void Start()
     {
-        questManager = QuestManager.main;
+        uIManager = UIManager.main;
         npcAnimator = GetComponent<Animator>();
         agent = GetComponent<NavMeshAgent>();
-        audioSource = GetComponent<AudioSource>();
         
         if (agent != null)
         {
@@ -54,9 +52,14 @@ public class Buyer : MonoBehaviour
             HandlePointReached();
         }
 
-        if (startLeaving && agent.remainingDistance <= agent.stoppingDistance)
+        if (startLeaving)
         {
-            Destroy(gameObject);
+            float distanceToLeaving = Vector3.Distance(transform.position, leavingPoint.position);  
+
+            if (distanceToLeaving <= 2f)
+            {
+                Destroy(gameObject);
+            }
         }
     }
 
@@ -101,35 +104,29 @@ public class Buyer : MonoBehaviour
             skinnedMesh.material = smileMaterial;
         }
 
-        if (questManager != null)
+        if (QuestManager.main != null)
         {
-            questManager.questList.gameObject.SetActive(true);
-            questManager.TaskSetup();
+            QuestManager.main.TaskSetup();
         }        
     }
 
-    void CompletePurchase()
+    void CompletePurchase(float _cost)
     {
         if (bought) return;
 
         bought = true;
-        
-        float cost = 100f;
 
-        if (questManager != null)
+        if (uIManager != null)
         {
-            questManager.buyCost.GetComponent<TextMeshProUGUI>().text = cost.ToString() + "$";
-            questManager.buying = true;
-            questManager.buyingTarget = transform;
-            questManager.TaskClose("sell");
-            questManager.TaskSetup();
-        }        
-        
-        if (audioSource != null)
-        {
-            audioSource.Play();
+            uIManager.SetCost(_cost);
         }
 
+        if (QuestManager.main != null)
+        {            
+            QuestManager.main.TaskClose("sell");
+            QuestManager.main.TaskSetup();
+        }
+        
         StartLeaving();
     }
 
@@ -137,11 +134,6 @@ public class Buyer : MonoBehaviour
     {
         isWaiting = false;
         startLeaving = true;
-
-        if (questManager != null && questManager.buyingTarget == transform)
-        {
-            questManager.buyingTarget = null;
-        }
         
         if (skinnedMesh != null)
         {
@@ -171,9 +163,9 @@ public class Buyer : MonoBehaviour
         {
             Item itemObj = other.gameObject.GetComponentInParent(typeof(Item)) as Item;
 
-            if (itemObj != null && itemObj.GetComponent<TaskItem>().completed)
+            if (itemObj != null && itemObj.GetComponent<TaskItem>().IsCompleted())
             {
-                CompletePurchase();
+                CompletePurchase(itemObj.GetCost());
                 Destroy(itemObj.gameObject);
             }
         }
@@ -186,6 +178,5 @@ public class Buyer : MonoBehaviour
         smileMaterial = null;
         npcAnimator = null;
         agent = null;
-        audioSource = null;
     }
 }

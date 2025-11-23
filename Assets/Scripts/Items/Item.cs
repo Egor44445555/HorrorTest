@@ -1,145 +1,193 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
 
 public class Item : MonoBehaviour
 {
-    public GameObject taskZone;
-    public GameObject[] components;
-    public bool filledCup = false;
+    [SerializeField] GameObject taskZone;
+    [SerializeField] GameObject[] components;
+    [SerializeField] float cost = 100f;
 
     [HideInInspector] public Animator anim;
     
-    float timer = 0f;
-    int maskNumber;
-    LayerMask enemyMask;
-    GameObject componentObject;
+    bool filledCup = false;
     List<GameObject> componentsList;
-    QuestMarker questMarker;
+    TaskZone taskZoneComponent;
+    TaskItem taskItemComponent;
+    bool isProcessing = false;
+    float lastCheckTime = 0f;
+    float checkInterval = 0.2f;
 
     void Start()
     {
-        questMarker = QuestMarker.main;
         componentsList = new List<GameObject>(components);
         anim = GetComponent<Animator>();
+        taskZoneComponent = taskZone != null ? taskZone.GetComponent<TaskZone>() : null;
+        taskItemComponent = GetComponent<TaskItem>();
     }
 
     void Update()
     {
-        timer += Time.deltaTime;
-        GameObject obj = taskZone.GetComponent<TaskZone>().taskItem;
+        lastCheckTime += Time.deltaTime;
 
-        if (filledCup)
+        if (lastCheckTime < checkInterval) return;
+
+        lastCheckTime = 0f;
+
+        if (isProcessing) return;
+
+        ProcessTaskZoneInteraction();
+        UpdateQuestMarker();
+        CheckCompletion();
+    }
+
+    void ProcessTaskZoneInteraction()
+    {
+        if (taskZoneComponent == null || !taskZoneComponent.IsInTaskInZone() || !filledCup)
         {
-            GetComponent<TaskItem>().taskTarget = null;
+            return;
         }
 
-        if (taskZone.GetComponent<TaskZone>().taskInZone && obj != null && filledCup)
+        GameObject taskObj = taskZoneComponent.GetTaskItem();
+
+        if (taskObj == null)
         {
-            for (int i = 0; i < componentsList.Count; i++)
+            return;
+        }
+
+        string taskLayerName = LayerMask.LayerToName(taskObj.layer);
+        
+        for (int i = componentsList.Count - 1; i >= 0; i--)
+        {
+            string componentLayerName = LayerMask.LayerToName(componentsList[i].layer);
+            
+            if (componentLayerName == taskLayerName)
             {
-                if (LayerMask.LayerToName(componentsList[i].layer) == LayerMask.LayerToName(obj.layer))
-                {
-                    GameObject newComponent = Instantiate(
-                        componentsList[i],
-                        componentsList[i].transform.position,
-                        componentsList[i].transform.rotation
-                    );
+                isProcessing = true;
+                ProcessComponentMatch(componentsList[i], taskObj, taskLayerName, i);
+                isProcessing = false;
+                return;
+            }
+        }
+    }
 
-                    MeshFilter originalMeshFilter = obj.GetComponent<MeshFilter>();
-                    MeshRenderer originalRenderer = obj.GetComponent<MeshRenderer>();
+    void ProcessComponentMatch(GameObject componentPrefab, GameObject taskObj, string layerName, int componentIndex)
+    {
+        GameObject newComponent = Instantiate(
+            componentPrefab,
+            componentPrefab.transform.position,
+            componentPrefab.transform.rotation
+        );
 
-                    if (originalMeshFilter != null && originalRenderer != null)
-                    {
-                        MeshFilter newMeshFilter = newComponent.GetComponent<MeshFilter>();
-                        MeshRenderer newRenderer = newComponent.GetComponent<MeshRenderer>();
+        CopyMeshAndMaterials(taskObj, newComponent);
+        CompleteQuest(layerName.ToLower());
 
-                        if (newMeshFilter == null) newMeshFilter = newComponent.AddComponent<MeshFilter>();
-                        if (newRenderer == null) newRenderer = newComponent.AddComponent<MeshRenderer>();
+        newComponent.GetComponent<MeshRenderer>().enabled = true;
+        newComponent.transform.SetParent(transform, true);
+        
+        Destroy(taskObj);
+        componentsList.RemoveAt(componentIndex);
 
-                        newMeshFilter.mesh = originalMeshFilter.mesh;
-                        newRenderer.materials = originalRenderer.materials;
-                    }
+        if (componentsList.Count > 0)
+        {
+            QuestManager.main.TaskSetup();
+        }
+    }
 
-                    foreach (Quest item in QuestManager.main.quests)
-                    {
-                        if (item.id == LayerMask.LayerToName(obj.layer).ToLower())
-                        {
-                            item.complete = true;
-                            break;
-                        }
-                    }
+    void CopyMeshAndMaterials(GameObject source, GameObject destination)
+    {
+        MeshFilter sourceMeshFilter = source.GetComponent<MeshFilter>();
+        MeshRenderer sourceRenderer = source.GetComponent<MeshRenderer>();
 
-                    foreach (QuestItem item in FindObjectsOfType<QuestItem>())
-                    {
-                        if (item.idQuest == LayerMask.LayerToName(obj.layer).ToLower())
-                        {
-                            item.CloseQuest();
-                            break;
-                        }
-                    }
+        if (sourceMeshFilter == null || sourceRenderer == null)
+        {
+            return;
+        }
 
-                    if (componentsList.Count - 1 > i)
-                    {
-                        QuestManager.main.TaskSetup();
-                    }
-                    
-                    newComponent.GetComponent<MeshRenderer>().enabled = true;
-                    newComponent.transform.SetParent(transform, true);
-                    Destroy(obj);
-                    timer = 0f;
-                    componentsList.RemoveAt(i);
-                    break;
-                }
+        MeshFilter destMeshFilter = destination.GetComponent<MeshFilter>();
+        MeshRenderer destRenderer = destination.GetComponent<MeshRenderer>();
+
+        if (destMeshFilter == null) destMeshFilter = destination.AddComponent<MeshFilter>();
+        if (destRenderer == null) destRenderer = destination.AddComponent<MeshRenderer>();
+
+        destMeshFilter.mesh = sourceMeshFilter.mesh;
+        destRenderer.materials = sourceRenderer.materials;
+    }
+
+    void CompleteQuest(string questId)
+    {
+        if (QuestManager.main == null) return;
+
+        foreach (Quest quest in QuestManager.main.quests)
+        {
+            if (quest.id == questId && !quest.complete)
+            {
+                quest.complete = true;
+                break;
             }
         }
 
-        if (filledCup && components.Length > componentsList.Count && !PlayerController.main.isHolding)
+        QuestManager.main.TaskClose(questId);
+    }
+
+    void UpdateQuestMarker()
+    {
+        if (!filledCup || componentsList.Count >= components.Length || PlayerController.main == null || PlayerController.main.isHolding)
         {
-            GameObject component = null;
+            return;
+        }
 
-            foreach (GameObject componentItem in componentsList)
+        GameObject nextComponent = componentsList.Count > 0 ? componentsList[0] : null;
+        
+        if (nextComponent == null) return;
+
+        string componentLayerName = LayerMask.LayerToName(nextComponent.layer).ToLower();
+        Transform target = FindQuestTarget(componentLayerName);
+
+        if (target != null && QuestMarker.main != null)
+        {
+            QuestMarker.main.SetTarget(target);
+        }
+    }
+
+    Transform FindQuestTarget(string questId)
+    {
+        if (QuestManager.main == null || QuestManager.main.quests == null)
+        {
+            return null;
+        }
+
+        foreach (Quest quest in QuestManager.main.quests)
+        {
+            if (quest.id == questId && !quest.complete && quest.target != null)
             {
-                component = Array.Find(components, (item) => item.name == componentItem.name);
-            }
-
-            if (component)
-            {
-                Transform target = null;
-
-                foreach (Quest item in QuestManager.main.quests)
-                {
-                    if (item.id == LayerMask.LayerToName(component.layer).ToLower())
-                    {
-                        target = item.target;
-
-                        if (questMarker != null)
-                        {
-                            questMarker.SetTarget(item.target);
-                        }
-                        break;
-                    }
-                }
-                
-                foreach (QuestItem item in FindObjectsOfType<QuestItem>())
-                {
-                    if (item.idQuest == LayerMask.LayerToName(component.layer).ToLower() && target != null)
-                    {
-                        if (questMarker != null)
-                        {
-                            questMarker.SetTarget(target);
-                        }
-
-                        break;
-                    }
-                }
+                return quest.target;
             }
         }
 
-        if (componentsList.Count == 0 && filledCup)
+        return null;
+    }
+
+    void CheckCompletion()
+    {
+        if (componentsList.Count == 0 && filledCup && taskItemComponent != null)
         {
-            GetComponent<TaskItem>().completed = true;
+            taskItemComponent.SetCompleted();
+            
+            if (QuestMarker.main != null)
+            {
+                QuestMarker.main.ClearTarget();
+            }
         }
+    }
+
+    public float GetCost()
+    {
+        return cost;
+    }
+
+    public void FillCup()
+    {
+        filledCup = true;
     }
 }

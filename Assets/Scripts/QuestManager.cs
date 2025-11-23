@@ -10,18 +10,8 @@ public class QuestManager : MonoBehaviour
     public Transform questList;
     public GameObject questItem;
     public Quest[] quests;
-    public GameObject buyCost;
-
-    [HideInInspector] public bool buying = false;
-    [HideInInspector] public Transform buyingTarget;
-
-    float buyingTimer = 0f;
-    float buyingTimerDelay = 1f;
-    bool buyingAnimate = false;
-    Animator buyCostAnimator;
-    TextMeshProUGUI buyCostText;
+    
     List<QuestItem> activeQuestItems = new List<QuestItem>();
-    QuestMarker questMarker;
 
     void Awake()
     {
@@ -32,60 +22,13 @@ public class QuestManager : MonoBehaviour
         }
         
         main = this;
-        
-        if (buyCost != null)
-        {
-            buyCostAnimator = buyCost.GetComponent<Animator>();
-            buyCostText = buyCost.GetComponent<TextMeshProUGUI>();
-        }
     }
 
     void Start()
     {
-        questMarker = QuestMarker.main;
-
         if (quests.Length > 0 && quests[0].runImmediately)
         {
             TaskSetup();
-        }
-    }
-
-    void Update()
-    {
-        if (buying)
-        {
-            buyingTimer += Time.deltaTime;
-            
-            if (buyCost != null)
-            {
-                buyCost.SetActive(true);
-
-                if (buyCostAnimator != null && !buyingAnimate)
-                {
-                    buyCostAnimator.SetBool("Buy", true);
-                    buyingAnimate = true;
-                }
-
-                if (buyingTimer >= buyingTimerDelay)
-                {
-                    buying = false;
-                    buyingAnimate = false;
-                    
-                    if (buyCostText != null)
-                    {
-                        buyCostText.text = "";
-                    }
-                }
-
-                if (buyingTarget != null && questMarker != null)
-                {
-                    questMarker.UpdateMarkerPosition(buyingTarget, buyCost.GetComponent<RectTransform>());
-                }
-            }
-        }
-        else if (buyCost != null)
-        {
-            buyCost.SetActive(false);
         }
     }
 
@@ -107,9 +50,9 @@ public class QuestManager : MonoBehaviour
                 CreateQuestItem(quest);
             }
 
-            if (questMarker != null)
+            if (QuestMarker.main != null)
             {
-                questMarker.SetTarget(quest.target);
+                QuestMarker.main.SetTarget(quest.target);
             }
             break;
         }

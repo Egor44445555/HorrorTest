@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
-using TMPro;
 
 public class TaskPlase : MonoBehaviour
 {
@@ -14,18 +12,19 @@ public class TaskPlase : MonoBehaviour
     public GameObject[] currentObject;
     public bool hideZoneAfterTask = false;
 
-    bool itemPlaced = false;
-    float timer = 0f;
-    bool startCupFillingAnim = false;
-    AudioSource audioSource;
-    GameObject cam;
-    GameObject finishedItem;
-    QuestMarker questMarker;
+    private bool itemPlaced = false;
+    private float timer = 0f;
+    private bool startCupFillingAnim = false;
+    private AudioSource audioSource;
+    private GameObject cam;
+    private GameObject finishedItem;
+    private TaskZone taskZoneComponent;
+    private bool hasProcessedCompletion = false;
 
     void Start()
     {
         audioSource = GetComponent<AudioSource>();
-        questMarker = QuestMarker.main;
+        taskZoneComponent = taskZone != null ? taskZone.GetComponent<TaskZone>() : null;
         
         if (PlayerController.main != null)
         {
@@ -35,82 +34,157 @@ public class TaskPlase : MonoBehaviour
 
     void Update()
     {
+        if (taskZoneComponent == null) return;
+
         timer += Time.deltaTime;
-        bool currentItem = false;
 
-        if (taskZone.GetComponent<TaskZone>().taskInZone && taskZone.GetComponent<TaskZone>().taskItem)
+        ProcessTaskZoneInteraction();
+        ProcessTaskCompletion();
+    }
+
+    void ProcessTaskZoneInteraction()
+    {
+        if (itemPlaced || !taskZoneComponent.IsInTaskInZone() || taskZoneComponent.GetTaskItem() == null)
         {
-            GameObject currentItemObj = Array.Find(currentObject, (item) => item.name == taskZone.GetComponent<TaskZone>().taskItem.name);
-            finishedItem = taskZone.GetComponent<TaskZone>().taskItem;
-
-            if (currentItemObj != null)
-            {
-                currentItem = true;
-            }
-            else if (taskZone.GetComponent<TaskZone>().taskItem.GetComponent<Rigidbody>() != null)
-            {
-                taskZone.GetComponent<TaskZone>().taskItem.GetComponent<Rigidbody>().AddForce(cam.transform.forward * -0.1f, ForceMode.Impulse);
-            }
+            return;
         }
 
-        if (taskZone.GetComponent<TaskZone>().taskInZone && taskZone.GetComponent<TaskZone>().taskItem != null && !itemPlaced && currentItem)
+        GameObject taskItem = taskZoneComponent.GetTaskItem();
+
+        if (!IsValidItem(taskItem))
         {
-            taskZone.GetComponent<TaskZone>().taskItem.GetComponent<Rigidbody>().isKinematic = true;
-            taskZone.GetComponent<TaskZone>().taskItem.GetComponent<Rigidbody>().position = pointObject.position;
-            taskZone.GetComponent<TaskZone>().taskItem.GetComponent<Rigidbody>().rotation = pointObject.rotation;
-            itemPlaced = true;
-            timer = 0f;
-
-            if (audioSource != null)
-            {
-                audioSource.Play();
-            }
-
-            if (taskZone.GetComponent<TaskZone>().taskItem.GetComponent<TaskItem>().disposable)
-            {
-                taskZone.GetComponent<TaskZone>().taskItem.tag = "Untagged";
-            }
-
-            if (taskZone.GetComponent<TaskZone>().taskItem.GetComponent<Item>() && !startCupFillingAnim)
-            {
-                taskZone.GetComponent<TaskZone>().taskItem.GetComponent<Item>().anim.SetBool("Filling", true);
-                taskZone.GetComponent<TaskZone>().taskItem.GetComponent<Item>().filledCup = true;
-                startCupFillingAnim = true;
-            }
-
-            if (completeTaskId != "")
-            {
-                foreach (Quest item in QuestManager.main.quests)
-                {
-                    if (item.id == completeTaskId && !item.complete)
-                    {
-                        item.complete = true;
-                        questMarker.SetTarget(nextMarkerPoint);
-                        break;
-                    }
-                }
-
-                foreach (QuestItem item in FindObjectsOfType<QuestItem>())
-                {
-                    if (item.idQuest == completeTaskId)
-                    {
-                        item.CloseQuest();
-                        break;
-                    }
-                }
-
-                QuestManager.main.TaskSetup();
-            }
+            return;
         }
 
-        if (itemPlaced && timer >= taskDelay && audioSource != null)
+        PlaceItem(taskItem);
+    }
+
+    bool IsValidItem(GameObject taskItem)
+    {
+        if (currentObject == null || currentObject.Length == 0)
+        {
+            return true;
+        }
+
+        foreach (GameObject validObject in currentObject)
+        {
+            if (validObject.CompareTag(taskItem.tag))
+            {
+                return true;
+            }
+            
+            TaskItem validTaskItem = validObject.GetComponent<TaskItem>();
+            TaskItem currentTaskItem = taskItem.GetComponent<TaskItem>();
+
+            if (validTaskItem != null && currentTaskItem != null && validTaskItem.GetTaskId() == currentTaskItem.GetTaskId())
+            {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    void PlaceItem(GameObject taskItem)
+    {
+        Rigidbody rb = taskItem.GetComponent<Rigidbody>();
+
+        if (rb == null) return;
+
+        if (PlayerController.main != null)
+        {
+            PlayerController.main.DropObject();
+        }
+
+        rb.isKinematic = true;
+        rb.position = pointObject.position;
+        rb.rotation = pointObject.rotation;
+        
+        itemPlaced = true;
+        timer = 0f;
+        finishedItem = taskItem;
+
+        if (audioSource != null)
+        {
+            audioSource.Play();
+        }
+
+        TaskItem taskItemComponent = taskItem.GetComponent<TaskItem>();
+
+        if (taskItemComponent != null && taskItemComponent.IsDisposable())
+        {
+            taskItem.tag = "Untagged";
+        }
+
+        Item itemComponent = taskItem.GetComponent<Item>();
+
+        if (itemComponent != null && !startCupFillingAnim)
+        {
+            itemComponent.anim.SetBool("Filling", true);
+            itemComponent.FillCup();
+            startCupFillingAnim = true;
+        }
+    }
+
+    void ProcessTaskCompletion()
+    {
+        if (!itemPlaced || hasProcessedCompletion) return;
+
+        if (timer >= taskDelay)
+        {
+            CompleteTask();
+            hasProcessedCompletion = true;
+        }
+    }
+
+    void CompleteTask()
+    {
+        if (audioSource != null)
         {
             audioSource.Stop();
+        }
 
-            if (hideZoneAfterTask)
+        if (hideZoneAfterTask && taskZone != null)
+        {
+            taskZone.SetActive(false);
+        }
+
+        if (!string.IsNullOrEmpty(completeTaskId))
+        {
+            ProcessQuestCompletion();
+        }
+    }
+
+    void ProcessQuestCompletion()
+    {
+        if (QuestManager.main == null)
+        {
+            return;
+        }
+
+        foreach (Quest quest in QuestManager.main.quests)
+        {
+            if (quest.id == completeTaskId && !quest.complete)
             {
-                taskZone.SetActive(false);
-            }            
+                quest.complete = true;
+                
+                if (QuestMarker.main != null && nextMarkerPoint != null)
+                {
+                    QuestMarker.main.SetTarget(nextMarkerPoint);
+                }
+                break;
+            }
+        }
+
+        QuestManager.main.TaskClose(completeTaskId);
+        QuestManager.main.TaskSetup();
+    }
+
+    void OnDestroy()
+    {
+        if (QuestMarker.main != null && QuestMarker.main.GetCurrentTarget() == nextMarkerPoint)
+        {
+            QuestMarker.main.ClearTarget();
         }
     }
 }

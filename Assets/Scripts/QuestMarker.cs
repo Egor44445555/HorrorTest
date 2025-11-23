@@ -11,7 +11,6 @@ public class QuestMarker : MonoBehaviour
     [SerializeField] Camera mainCamera;
 
     Transform target;
-
     RectTransform markerRect;
     Image markerImage;
     QuestItem currentQuestItem;
@@ -112,7 +111,9 @@ public class QuestMarker : MonoBehaviour
     Quest FindQuestById(string questId)
     {
         if (QuestManager.main == null || QuestManager.main.quests == null)
+        {
             return null;
+        }
 
         return Array.Find(QuestManager.main.quests, item => item.id == questId);
     }
@@ -195,6 +196,11 @@ public class QuestMarker : MonoBehaviour
         {
             markerImage.enabled = newTarget != null;
         }
+    }
+
+    public Transform GetCurrentTarget()
+    {
+        return target;
     }
 
     public void ClearTarget()

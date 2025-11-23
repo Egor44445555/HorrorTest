@@ -34,7 +34,7 @@ public class LevelManager : MonoBehaviour
             prepareMonsterTimer += Time.deltaTime;
         }
 
-        if (activeMonsterZone != null && activeMonsterZone.taskItem && !startFinalQuest)
+        if (activeMonsterZone != null && activeMonsterZone.GetTaskItem() && !startFinalQuest)
         {
             PlayerController.main.StartChase();
             startPrepareMonster = true;
@@ -55,7 +55,7 @@ public class LevelManager : MonoBehaviour
             isStartAttack = true;
         }
 
-        if (safeZone && safeZone.taskItem)
+        if (safeZone && safeZone.GetTaskItem())
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene(
                 UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex

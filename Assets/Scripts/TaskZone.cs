@@ -1,16 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
 
 public class TaskZone : MonoBehaviour
 {
-    [HideInInspector] public bool taskInZone = false;
-    // [HideInInspector]
-    public GameObject taskItem;
-
-    public bool inZone = false;
+    bool taskInZone = false;
+    GameObject taskItem;
     GameObject cam;
+    TaskPlase parentTaskPlase;
+    float lastForceTime = 0f;
 
     void Start()
     {
@@ -18,46 +16,82 @@ public class TaskZone : MonoBehaviour
         {
             cam = PlayerController.main.GetCam();
         }
+
+        parentTaskPlase = transform.parent != null ? transform.parent.GetComponent<TaskPlase>() : null;
     }
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.gameObject.GetComponent<TaskItem>() && !inZone)
+        TaskItem taskItemComponent = other.GetComponent<TaskItem>();
+
+        if (taskItemComponent == null) return;
+
+        if (IsValidItem(other.gameObject))
         {
             taskInZone = true;
             taskItem = other.gameObject;
-            PlayerController.main.DropObject();
-        }
-    }
-
-    void OnTriggerStay(Collider other)
-    {
-        if (transform.parent != null && transform.parent.GetComponent<TaskPlase>())
-        {            
-            GameObject currentItemObj = Array.Find(transform.parent.GetComponent<TaskPlase>().currentObject, (item) => item.name == other.gameObject.name);
-
-            if (currentItemObj == null && other.gameObject.GetComponent<Rigidbody>())
+            
+            if (PlayerController.main != null)
             {
-                other.gameObject.GetComponent<Rigidbody>().AddForce(cam.transform.forward * -0.1f, ForceMode.Impulse);
+                PlayerController.main.DropObject();
             }
         }
-
-        if (other.gameObject.GetComponent<TaskItem>())
-        {
-            inZone = true;
-        }
-        else
-        {
-            inZone = false;
-        }
     }
-    
+
     void OnTriggerExit(Collider other)
     {
-        if (other.gameObject.GetComponent<TaskItem>())
+        if (other.gameObject == taskItem)
         {
             taskInZone = false;
             taskItem = null;
         }
+    }
+
+    bool IsValidItem(GameObject item)
+    {
+        if (parentTaskPlase == null || parentTaskPlase.currentObject == null)
+        {
+            return true;
+        }
+
+        TaskItem itemTaskComponent = item.GetComponent<TaskItem>();
+
+        if (itemTaskComponent == null) return false;
+
+        foreach (GameObject validObject in parentTaskPlase.currentObject)
+        {
+            if (validObject == null) continue;
+
+            if (validObject.CompareTag(item.tag))
+            {
+                return true;
+            }
+
+            TaskItem validTaskItem = validObject.GetComponent<TaskItem>();
+
+            if (validTaskItem != null && validTaskItem.GetTaskId() == itemTaskComponent.GetTaskId())
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool IsInTaskInZone()
+    {
+        return taskInZone;
+    }
+
+    public GameObject GetTaskItem()
+    {
+        return taskItem;
+    }
+
+    
+
+    void OnDestroy()
+    {
+        taskItem = null;
     }
 }

@@ -39,7 +39,6 @@ public class PlayerController : MonoBehaviour
     bool isBeingChased = false;
     float chaseIntensity = 1f;
 	float lastShakeTime;
-	QuestMarker questMarker;
 
 
 	void Awake()
@@ -55,7 +54,6 @@ public class PlayerController : MonoBehaviour
 
 	void Start()
 	{
-		questMarker = QuestMarker.main;
 		character = GetComponent<CharacterController>();
 		cameraShake = cam.GetComponent<CameraShake>();
 		Cursor.lockState = CursorLockMode.Locked;
@@ -64,7 +62,7 @@ public class PlayerController : MonoBehaviour
 
 	void Update()
 	{
-		if (Input.GetMouseButtonDown(0) && !GameObject.FindGameObjectWithTag("Popup"))
+		if (Input.GetMouseButtonDown(0))
 		{
 			Cursor.lockState = CursorLockMode.Locked;
 			Cursor.visible = false;
@@ -184,9 +182,9 @@ public class PlayerController : MonoBehaviour
 					isHolding = true;
 					UICursor.main.GrabCursor(false);
 
-					if (questMarker != null && taskItem.taskTarget)
+					if (QuestMarker.main != null && taskItem.GetTaskTarget() != null)
 					{
-						questMarker.SetTarget(taskItem.taskTarget);
+						QuestMarker.main.SetTarget(taskItem.GetTaskTarget());
 					}
 				}
 			}
@@ -279,9 +277,9 @@ public class PlayerController : MonoBehaviour
 		heldObjectRb = null;
 		isHolding = false;
 
-		if (questMarker != null)
+		if (QuestMarker.main != null)
 		{
-			questMarker.SetTarget(null);
+			QuestMarker.main.SetTarget(null);
 		}
 	}
 

@@ -8,13 +8,16 @@ public class UIManager : MonoBehaviour
 {
     public static UIManager main;
     [SerializeField] GameObject pauseMenu;
-    [SerializeField] GameObject interfaceObj;
-    
-
-    [Header("Death Player Settings")]
-    [SerializeField] GameObject deathMenu;
+    [SerializeField] GameObject buyCost;
+    [SerializeField] AudioSource buySound;
 
     [HideInInspector] public bool gamePause = false;
+
+    Animator buyCostAnimator;
+    TextMeshProUGUI buyCostText;
+    float cost = 0f;
+    float showCostTimer = 0f;
+    bool startShowCost = false;
 
     void Awake()
     {
@@ -33,6 +36,8 @@ public class UIManager : MonoBehaviour
         gamePause = true;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        buyCostAnimator = buyCost.GetComponent<Animator>();
+        buyCostText = buyCost.GetComponent<TextMeshProUGUI>();
 
         if (pauseMenu != null)
         {
@@ -48,6 +53,38 @@ public class UIManager : MonoBehaviour
         {
             TogglePause();
         }
+
+        if (startShowCost)
+        {
+            showCostTimer += Time.deltaTime;
+        }
+
+        if (startShowCost && showCostTimer >= 1f)
+        {
+            HideCost();
+        }
+    }
+
+    public void SetCost(float _cost)
+    {
+        startShowCost = true;
+        buyCost.SetActive(true);
+        buyCostAnimator.SetBool("Buy", true);
+        cost += _cost;
+        buyCostText.text = _cost.ToString() + "$";
+
+        if (buySound != null)
+        {
+            buySound.Play();
+        }
+    }
+
+    public void HideCost()
+    {
+        startShowCost = false;
+        showCostTimer = 0f;
+        buyCostAnimator.SetBool("Buy", false);
+        buyCost.SetActive(false);
     }
 
     void OnApplicationFocus(bool hasFocus)
