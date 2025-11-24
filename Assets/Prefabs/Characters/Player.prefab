@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 1182547188810120305}
   - component: {fileID: 5623902428528662239}
   - component: {fileID: 7739282289057239317}
-  - component: {fileID: 2114523853379264915}
+  - component: {fileID: 678420747479514969}
   - component: {fileID: 1717668867922456961}
   m_Layer: 9
   m_Name: Camera
@@ -125,7 +125,7 @@ MonoBehaviour:
     duration: 10
     magnitude: 0.2
     frequency: 15
---- !u!114 &2114523853379264915
+--- !u!114 &678420747479514969
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -140,13 +140,18 @@ MonoBehaviour:
   cleanVhsShader: {fileID: 4800000, guid: 7b604dc982bdefd4ca97f85a807683cb, type: 3}
   warmth: 1.356
   vignette: 2
-  scanLines: 0.3
-  chromaShift: 0.001
+  scanLines: 0
+  chromaShift: 0.003
   enableAnimation: 1
-  chromaShiftNoise: 0.003
-  scanLineJitter: 0.0917
-  staticNoise: 0.01
+  scanLineJitter: 0
+  staticNoise: 0.00119
   animationSpeed: 1
+  headWobble: 0.05
+  headWobbleWidth: 2.5
+  trackingError: 0
+  tapeNoise: 0.01
+  saturation: 1.26
+  contrast: 1
 --- !u!114 &1717668867922456961
 MonoBehaviour:
   m_ObjectHideFlags: 0
