@@ -8,13 +8,13 @@ public class CleanVHSEffect : MonoBehaviour
     public Shader cleanVhsShader;
     [Range(0.5f, 2f)] public float warmth = 1.1f;
     [Range(0f, 2f)] public float vignette = 1f;
-    [Range(0f, 0.3f)] public float scanLines = 0.1f;
+    [Range(0f, 10f)] public float scanLines = 0.3f;
     [Range(0f, 0.02f)] public float chromaShift = 0.005f;
     
     [Header("Animation Settings")]
     public bool enableAnimation = true;
     [Range(0f, 0.1f)] public float chromaShiftNoise = 0.003f;
-    [Range(0f, 0.2f)] public float scanLineJitter = 0.05f;
+    [Range(0f, 10f)] public float scanLineJitter = 0.05f;
     [Range(0f, 0.1f)] public float staticNoise = 0.02f;
     public float animationSpeed = 1f;
 
