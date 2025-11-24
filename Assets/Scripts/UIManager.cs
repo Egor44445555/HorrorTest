@@ -11,6 +11,10 @@ public class UIManager : MonoBehaviour
     [SerializeField] GameObject buyCost;
     [SerializeField] AudioSource buySound;
 
+    [Header("Player Settings")]
+    [SerializeField] Slider sensitive;
+    [SerializeField] TextMeshProUGUI sensitiveCount;
+
     [HideInInspector] public bool gamePause = false;
 
     Animator buyCostAnimator;
@@ -39,6 +43,22 @@ public class UIManager : MonoBehaviour
         buyCostAnimator = buyCost.GetComponent<Animator>();
         buyCostText = buyCost.GetComponent<TextMeshProUGUI>();
 
+        if (sensitive != null)
+        {
+            float currentSensitive = sensitive.value;
+
+            if (sensitiveCount != null)
+            {
+                sensitiveCount.text = Math.Round(currentSensitive, 2).ToString();
+            }
+        }
+        
+        if (PlayerPrefs.HasKey("Sensitive"))
+        {
+            sensitiveCount.text = Math.Round(PlayerPrefs.GetFloat("Sensitive"), 2).ToString();
+            sensitive.value = PlayerPrefs.GetFloat("Sensitive");
+        }
+
         if (pauseMenu != null)
         {
             pauseMenu.SetActive(false);
@@ -63,6 +83,18 @@ public class UIManager : MonoBehaviour
         {
             HideCost();
         }
+    }
+
+    public void ChangeSensitive()
+    {
+        if (sensitiveCount != null)
+        {
+            sensitiveCount.text = Math.Round(sensitive.value, 0).ToString();
+        }
+
+        PlayerController.main.ChangeSensitive(sensitive.value);
+        PlayerPrefs.SetFloat("Sensitive", sensitive.value);
+        PlayerPrefs.Save();
     }
 
     public void SetCost(float _cost)

@@ -1469,7 +1469,7 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: 0
   m_Radius: 0.59
-  m_Speed: 5.5
+  m_Speed: 7
   m_Acceleration: 100
   avoidancePriority: 50
   m_AngularSpeed: 700
@@ -1518,9 +1518,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   startAttack: 0
   activeZone: {fileID: 0}
-  skinnedMesh:
-  - {fileID: 915372173221688050}
-  - {fileID: 213861709540974366}
   roarSound: {fileID: 5970235116092913349}
   footstepSound: {fileID: 2685677960416202141}
   targetRadius: 4
@@ -1542,6 +1539,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 18be0f19d0d953b45bffc2f5b3599e9f, type: 3}
   - {fileID: 8300000, guid: 806bfb7928ba9b44cbf82c132bbd4b3e, type: 3}
   playing: 0
+  delayBetweenTracks: 0.1
 --- !u!82 &5970235116092913349
 AudioSource:
   m_ObjectHideFlags: 0

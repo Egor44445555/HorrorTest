@@ -6,7 +6,6 @@ public class Monster : MonoBehaviour
 {
     public bool startAttack = false;
     [SerializeField] TaskZone activeZone;
-    [SerializeField] SkinnedMeshRenderer[] skinnedMesh;
 
 
     [Header("Sounds")]
@@ -46,15 +45,6 @@ public class Monster : MonoBehaviour
         if (UIManager.main.gamePause) return;
         
         if (!startAttack || playerTransform == null) return;
-
-        if (skinnedMesh.Length > 0 && !showModel)
-        {
-            foreach(SkinnedMeshRenderer skin in skinnedMesh)
-            {
-                skin.enabled = true;
-            }
-            showModel = true;
-        }
 
         float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);        
         bool shouldAttack = distanceToPlayer <= targetRadius && distanceToPlayer >= minTargetRadius;
@@ -99,13 +89,6 @@ public class Monster : MonoBehaviour
         }
 
         UpdateAnimations();
-
-        if (!playMusic)
-        {
-            GetComponent<AudioPlaylist>().playing = true;
-            canvas.GetComponent<AudioSource>().Play();
-            playMusic = true;
-        }
     }
 
     void StartAttack()

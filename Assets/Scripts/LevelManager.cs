@@ -13,7 +13,7 @@ public class LevelManager : MonoBehaviour
     bool startFinalQuest = false;
     bool startPrepareMonster = false;
     float prepareMonsterTimer = 0f;
-    float maxPrepareMonsterTime = 5f;
+    float maxPrepareMonsterTime = 3f;
     bool isStartAttack = false;
 
     void Awake()
@@ -43,17 +43,16 @@ public class LevelManager : MonoBehaviour
             monster.gameObject.SetActive(true);
             monster.StartHunt();
             startFinalQuest = true;
-        }
-
-        if (startFinalQuest && prepareMonsterTimer >= maxPrepareMonsterTime && !isStartAttack)
-        {
-            monster.startAttack = true;
 
             if (chaseMusic != null)
             {
                 chaseMusic.Play();
             }
+        }
 
+        if (startFinalQuest && prepareMonsterTimer >= maxPrepareMonsterTime && !isStartAttack)
+        {
+            monster.startAttack = true;
             isStartAttack = true;
         }
 

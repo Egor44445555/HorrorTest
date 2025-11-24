@@ -144,7 +144,7 @@ MonoBehaviour:
   chromaShift: 0.00147
   enableAnimation: 1
   chromaShiftNoise: 0.003
-  scanLineJitter: 0.0114
+  scanLineJitter: 0.0917
   staticNoise: 0.02
   animationSpeed: 1
 --- !u!114 &1717668867922456961

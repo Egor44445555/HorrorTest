@@ -8,8 +8,8 @@ public class PlayerController : MonoBehaviour
 	public static PlayerController main;
 
 	[Header("Movement Settings")]
-	[SerializeField] float speed = 10.0f;
-	[SerializeField] float sensitivity = 30.0f;
+	[SerializeField] float speed = 10f;
+	[SerializeField] float sensitivity = 70f;
 	public float collisionCheckDistance = 0.5f;
 	[SerializeField] GameObject cam;
 	public bool stuck = false;
@@ -300,6 +300,11 @@ public class PlayerController : MonoBehaviour
     public void EndChase()
     {
         cameraShake.StopShake();
+    }
+
+	public void ChangeSensitive(float value)
+    {
+        sensitivity = value;
     }
 
 	void OnTriggerEnter(Collider other)

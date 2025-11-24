@@ -169,6 +169,7 @@ public class Buyer : MonoBehaviour
             {
                 CompletePurchase(itemObj.GetCost());
                 Destroy(itemObj.gameObject);
+                PlayerController.main.DropObject();
             }
         }
     }
