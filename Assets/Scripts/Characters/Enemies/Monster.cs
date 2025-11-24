@@ -43,6 +43,8 @@ public class Monster : MonoBehaviour
 
     void Update()
     {
+        if (UIManager.main.gamePause) return;
+        
         if (!startAttack || playerTransform == null) return;
 
         if (skinnedMesh.Length > 0 && !showModel)

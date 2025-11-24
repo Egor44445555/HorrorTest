@@ -31,15 +31,9 @@ public class PlayerController : MonoBehaviour
 	bool ignoreFirstFrame = false;
 	[HideInInspector] public bool isHolding = false;
 
-
 	[Header("Camera Shake")]
     CameraShake cameraShake;
-    
-    [Header("Chase Settings")]
-    bool isBeingChased = false;
-    float chaseIntensity = 1f;
-	float lastShakeTime;
-
+	bool activeMouse = false;
 
 	void Awake()
 	{
@@ -62,10 +56,17 @@ public class PlayerController : MonoBehaviour
 
 	void Update()
 	{
-		if (Input.GetMouseButtonDown(0))
+		if (UIManager.main.gamePause)
+        {
+            activeMouse = false;
+            ignoreFirstFrame = false;
+            return;
+        }
+
+		if (!ignoreFirstFrame)
 		{
-			Cursor.lockState = CursorLockMode.Locked;
-			Cursor.visible = false;
+			ignoreFirstFrame = true;
+			return;
 		}
 
 		if (!stuck)
@@ -90,16 +91,10 @@ public class PlayerController : MonoBehaviour
 
 	void HandleCameraRotation()
 	{
-		if (cam == null) return;
+		if (cam == null && !activeMouse) return;
 
 		rotX = Input.GetAxis("Mouse X") * sensitivity;
 		rotY = Input.GetAxis("Mouse Y") * sensitivity;
-
-		if (ignoreFirstFrame)
-		{
-			ignoreFirstFrame = false;
-			return;
-		}
 
 		if (Cursor.lockState == CursorLockMode.Locked)
 		{
@@ -292,16 +287,6 @@ public class PlayerController : MonoBehaviour
 		cam.transform.Rotate(-rotY * Time.deltaTime, 0, 0);
 	}
 	
-	void OnApplicationFocus(bool hasFocus)
-	{
-		if (hasFocus)
-		{
-			Input.ResetInputAxes();
-			Cursor.lockState = CursorLockMode.Locked;
-			Cursor.visible = false;
-		}
-	}
-
 	public GameObject GetCam()
     {
         return cam;
@@ -309,13 +294,11 @@ public class PlayerController : MonoBehaviour
     
     public void StartChase()
     {
-        isBeingChased = true;
         cameraShake.StartChaseShake();
     }
     
     public void EndChase()
     {
-        isBeingChased = false;
         cameraShake.StopShake();
     }
 

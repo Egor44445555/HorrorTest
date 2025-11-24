@@ -34,6 +34,8 @@ public class TaskPlase : MonoBehaviour
 
     void Update()
     {
+        if (UIManager.main.gamePause) return;
+        
         if (taskZoneComponent == null) return;
 
         timer += Time.deltaTime;

@@ -29,6 +29,8 @@ public class LevelManager : MonoBehaviour
 
     void Update()
     {
+        if (UIManager.main.gamePause) return;
+        
         if (startPrepareMonster && prepareMonsterTimer < maxPrepareMonsterTime)
         {
             prepareMonsterTimer += Time.deltaTime;

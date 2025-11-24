@@ -63,6 +63,8 @@ public class QuestMarker : MonoBehaviour
 
     void Update()
     {
+        if (UIManager.main.gamePause) return;
+        
         if (!isInitialized) return;
 
         if (target == null)

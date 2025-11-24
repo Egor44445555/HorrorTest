@@ -35,6 +35,8 @@ public class SoundZone : MonoBehaviour
 
     void Update()
     {
+        if (UIManager.main.gamePause) return;
+        
         audioSource.volume = Mathf.Lerp(audioSource.volume, targetVolume, fadeSpeed * Time.deltaTime);
 
         if (audioSource.volume < 0.01f && audioSource.isPlaying)

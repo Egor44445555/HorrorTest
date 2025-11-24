@@ -28,6 +28,8 @@ public class Item : MonoBehaviour
 
     void Update()
     {
+        if (UIManager.main.gamePause) return;
+        
         lastCheckTime += Time.deltaTime;
 
         if (lastCheckTime < checkInterval) return;

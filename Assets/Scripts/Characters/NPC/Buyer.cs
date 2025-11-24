@@ -42,6 +42,8 @@ public class Buyer : MonoBehaviour
 
     void Update()
     {
+        if (UIManager.main.gamePause) return;
+
         if (isWaiting) return;
 
         if (agent.isActiveAndEnabled && 

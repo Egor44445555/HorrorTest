@@ -15,6 +15,8 @@ public class TaskItem : MonoBehaviour
 
     void Update()
     {
+        if (UIManager.main.gamePause) return;
+        
         if (completed && !hasProcessedCompletion)
         {
             ProcessCompletion();
