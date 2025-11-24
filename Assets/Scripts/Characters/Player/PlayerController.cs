@@ -218,7 +218,7 @@ public class PlayerController : MonoBehaviour
 
 	void FindPickup()
     {
-		if (cam == null || heldObject != null)
+		if (cam == null || isHolding)
         {
             return;
         }
@@ -284,11 +284,6 @@ public class PlayerController : MonoBehaviour
 		{
 			QuestMarker.main.SetTarget(null);
 		}
-
-		if (UICursor.main != null)
-        {
-            UICursor.main.GrabCursor(false);
-        }
 	}
 
 	void CameraRotation(GameObject cam, float rotX, float rotY)

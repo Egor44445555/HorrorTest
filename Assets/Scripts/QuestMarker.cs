@@ -86,6 +86,7 @@ public class QuestMarker : MonoBehaviour
         if (currentQuestItem != null && CanShowMarker())
         {
             Quest quest = FindQuestById(currentQuestItem.idQuest);
+
             if (quest != null && quest.target != null)
             {
                 target = quest.target;
@@ -126,10 +127,10 @@ public class QuestMarker : MonoBehaviour
         Vector3 targetScreenPos = mainCamera.WorldToScreenPoint(_target.position);
 
         bool isOffScreen = targetScreenPos.z <= 0 ||
-                        targetScreenPos.x <= 0 ||
-                        targetScreenPos.x >= Screen.width ||
-                        targetScreenPos.y <= 0 ||
-                        targetScreenPos.y >= Screen.height;
+                            targetScreenPos.x <= 0 ||
+                            targetScreenPos.x >= Screen.width ||
+                            targetScreenPos.y <= 0 ||
+                            targetScreenPos.y >= Screen.height;
 
         if (isOffScreen)
         {
